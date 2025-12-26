@@ -21,7 +21,8 @@ import {
   Wrench,
   Users,
   LogOut,
-  Bug
+  Bug,
+  Building2
 } from 'lucide-react'
 import { Button } from '../components/ui/button'
 
@@ -47,11 +48,7 @@ function AdminLayout() {
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2 px-2 py-2">
-            <img 
-              src="https://scontent.fcrk1-2.fna.fbcdn.net/v/t39.30808-6/247517119_1040926690025783_3271896171650896471_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHqLT6Uvu1Sb4miuoT5evBDMK8cwDXLlT0wrxzANcuVPZQdasrVqaYWuL7pYsR2kK7oFpkhNnDfJjrKCVub_6QC&_nc_ohc=A7lOd25oVqgQ7kNvwGb-UVN&_nc_oc=AdlRYWfhADgPw8Fua-ezqUd4VugSjCCZoh7utbWex4t2jFcWekIGmywj9N89zexggJ0&_nc_zt=23&_nc_ht=scontent.fcrk1-2.fna&_nc_gid=thNKrsOKoV7VM-ptWgDBrg&oh=00_AfluMfHgJGV_F_py790i8kvV0hZGohjjy-gzO-WkXJoRxg&oe=694D5642" 
-              alt="Aquarius Pest Control Services Logo" 
-              className="h-8 w-8 rounded object-cover"
-            />
+            <Building2 className="h-8 w-8 text-primary" />
             <div className="flex flex-col">
               <span className="font-semibold">Aquarius Pest Control</span>
               <span className="text-xs text-muted-foreground">Admin Panel</span>

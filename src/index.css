@@ -60,8 +60,50 @@
   * {
     @apply border-border;
   }
+  
+  /* Only apply Tailwind base styles to admin pages */
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* Preserve client layout styles */
+  .client-layout,
+  .client-layout * {
+    box-sizing: border-box;
+  }
+  
+  .client-layout body {
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Ensure client view content is visible */
+  .client-layout main {
+    min-height: 100vh;
+    background: #ffffff !important;
+    display: block !important;
+    visibility: visible !important;
+  }
+  
+  .client-layout .home,
+  .client-layout .services-page,
+  .client-layout .contact-page {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    min-height: 100vh !important;
+    background: #ffffff !important;
+  }
+  
+  /* Override Tailwind reset for client layout */
+  .client-layout h1,
+  .client-layout h2,
+  .client-layout h3,
+  .client-layout p,
+  .client-layout div,
+  .client-layout section {
+    display: block;
+    visibility: visible;
   }
 }
 

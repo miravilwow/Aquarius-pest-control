@@ -1,0 +1,80 @@
+/* ============================================
+   TYPOGRAPHY SYSTEM
+   ============================================
+   - 2 font sizes per section
+   - Focus on font-weight over size
+   - Proper line-height for readability
+   ============================================ */
+
+/* Base Typography */
+:root {
+  /* Primary Text - Larger, Bold */
+  --font-size-primary: 1rem;
+  --font-weight-primary: 600;
+  --line-height-primary: 1.6;
+  
+  /* Secondary Text - Smaller, Regular */
+  --font-size-secondary: 0.9375rem; /* 15px */
+  --font-weight-secondary: 400;
+  --line-height-secondary: 1.7;
+  
+  /* Headings */
+  --font-size-heading-large: clamp(2rem, 4vw, 2.5rem);
+  --font-weight-heading-large: 800;
+  --line-height-heading-large: 1.2;
+  
+  --font-size-heading-medium: clamp(1.5rem, 3vw, 1.875rem);
+  --font-weight-heading-medium: 700;
+  --line-height-heading-medium: 1.3;
+  
+  /* Body Text */
+  --font-size-body-large: 1rem;
+  --font-weight-body-large: 500;
+  --line-height-body-large: 1.7;
+  
+  --font-size-body-small: 0.9375rem;
+  --font-weight-body-small: 400;
+  --line-height-body-small: 1.6;
+}
+
+/* Typography Classes */
+.text-primary {
+  font-size: var(--font-size-primary);
+  font-weight: var(--font-weight-primary);
+  line-height: var(--line-height-primary);
+}
+
+.text-secondary {
+  font-size: var(--font-size-secondary);
+  font-weight: var(--font-weight-secondary);
+  line-height: var(--line-height-secondary);
+}
+
+.heading-large {
+  font-size: var(--font-size-heading-large);
+  font-weight: var(--font-weight-heading-large);
+  line-height: var(--line-height-heading-large);
+}
+
+.heading-medium {
+  font-size: var(--font-size-heading-medium);
+  font-weight: var(--font-weight-heading-medium);
+  line-height: var(--line-height-heading-medium);
+}
+
+.body-large {
+  font-size: var(--font-size-body-large);
+  font-weight: var(--font-weight-body-large);
+  line-height: var(--line-height-body-large);
+}
+
+.body-small {
+  font-size: var(--font-size-body-small);
+  font-weight: var(--font-weight-body-small);
+  line-height: var(--line-height-body-small);
+}
+
+
+
+
+

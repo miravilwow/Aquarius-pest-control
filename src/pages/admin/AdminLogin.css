@@ -27,6 +27,12 @@
   margin-bottom: 1rem;
 }
 
+.login-logo-icon {
+  color: #3498db;
+  margin: 0 auto 1rem;
+  display: block;
+}
+
 .login-container h1 {
   margin: 0 0 0.5rem 0;
   color: #2c3e50;

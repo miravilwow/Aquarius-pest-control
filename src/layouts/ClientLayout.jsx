@@ -1,44 +1,130 @@
-import { useState } from 'react'
-import { Outlet, Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Outlet, Link, useLocation } from 'react-router-dom'
+import { Building2, Menu, X, Wrench, Calendar, Mail, Shield } from 'lucide-react'
 import './ClientLayout.css'
 
 function ClientLayout() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20)
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location])
+
+  const navItems = [
+    { path: '/services', label: 'Services', icon: Wrench },
+    { path: '/contact', label: 'Contact', icon: Mail },
+  ]
 
   return (
-    <div className="client-layout">
-      <nav className="navbar">
+    <div className="client-layout-modern">
+      <nav className={`navbar-modern ${scrolled ? 'scrolled' : ''}`}>
         <div className="container">
-          <Link to="/" className="logo">
-            <img 
-              src="https://scontent.fcrk1-2.fna.fbcdn.net/v/t39.30808-6/247517119_1040926690025783_3271896171650896471_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=6ee11a&_nc_eui2=AeHqLT6Uvu1Sb4miuoT5evBDMK8cwDXLlT0wrxzANcuVPZQdasrVqaYWuL7pYsR2kK7oFpkhNnDfJjrKCVub_6QC&_nc_ohc=A7lOd25oVqgQ7kNvwGb-UVN&_nc_oc=AdlRYWfhADgPw8Fua-ezqUd4VugSjCCZoh7utbWex4t2jFcWekIGmywj9N89zexggJ0&_nc_zt=23&_nc_ht=scontent.fcrk1-2.fna&_nc_gid=thNKrsOKoV7VM-ptWgDBrg&oh=00_AfluMfHgJGV_F_py790i8kvV0hZGohjjy-gzO-WkXJoRxg&oe=694D5642" 
-              alt="Aquarius Pest Control Services Logo" 
-              className="logo-img"
-            />
-            <h2>Aquarius Pest Control Services</h2>
-          </Link>
-          <button 
-            className="menu-toggle" 
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? '✕' : '☰'}
-          </button>
-          <ul className={`nav-menu ${menuOpen ? 'active' : ''}`}>
-            <li><Link to="/" onClick={() => setMenuOpen(false)}>Home</Link></li>
-            <li><Link to="/services" onClick={() => setMenuOpen(false)}>Services</Link></li>
-            <li><Link to="/booking" onClick={() => setMenuOpen(false)}>Book Now</Link></li>
-            <li><Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link></li>
-            <li><Link to="/admin/login" className="admin-link" onClick={() => setMenuOpen(false)}>Admin</Link></li>
-          </ul>
+          <div className="navbar-left">
+            <Link to="/" className="logo-modern">
+              <div className="logo-icon-modern">
+                <Building2 size={32} />
+              </div>
+              <div className="logo-text">
+                <h2>Aquarius Pest Control</h2>
+                <span className="logo-subtitle">Services</span>
+              </div>
+            </Link>
+          </div>
+          <div className="navbar-right">
+            <ul className={`nav-menu-modern ${menuOpen ? 'active' : ''}`}>
+              {navItems.map((item) => {
+                const Icon = item.icon
+                const isActive = location.pathname === item.path
+                return (
+                  <li key={item.path}>
+                    <Link 
+                      to={item.path} 
+                      onClick={() => setMenuOpen(false)}
+                      className={isActive ? 'active' : ''}
+                    >
+                      <Icon size={18} />
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
+                )
+              })}
+              <li>
+                <Link 
+                  to="/booking" 
+                  className="cta-button-modern"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Calendar size={18} />
+                  <span>Book Now</span>
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/admin/login" 
+                  className="admin-link-modern"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <Shield size={18} />
+                  <span>Admin</span>
+                </Link>
+              </li>
+            </ul>
+            <button 
+              className={`menu-toggle-modern ${menuOpen ? 'active' : ''}`}
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Toggle menu"
+            >
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
         </div>
       </nav>
-      <main>
+      <main className="main-modern">
         <Outlet />
       </main>
-      <footer className="footer">
+      <footer className="footer-modern">
         <div className="container">
-          <p>&copy; 2024 Aquarius Pest Control Services. All rights reserved.</p>
+          <div className="footer-content">
+            <div className="footer-section">
+              <div className="footer-logo">
+                <Building2 size={32} />
+                <h3>Aquarius Pest Control Services</h3>
+              </div>
+              <p className="footer-description">
+                Professional, Legitimate, and Trusted Pest Control for 18 Years
+              </p>
+            </div>
+            <div className="footer-section">
+              <h4>Quick Links</h4>
+              <ul>
+                <li><Link to="/">Home</Link></li>
+                <li><Link to="/services">Services</Link></li>
+                <li><Link to="/booking">Book Now</Link></li>
+                <li><Link to="/contact">Contact</Link></li>
+              </ul>
+            </div>
+            <div className="footer-section">
+              <h4>Contact Info</h4>
+              <ul>
+                <li>📱 09265557359</li>
+                <li>✉️ rodolfomiravil65@gmail.com</li>
+                <li>📍 Bulacan Branch</li>
+              </ul>
+            </div>
+          </div>
+          <div className="footer-bottom">
+            <p>&copy; 2024 Aquarius Pest Control Services. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
