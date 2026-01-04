@@ -34,6 +34,19 @@ function Home() {
   const [selectedService, setSelectedService] = useState(null)
   const autoAdvanceIntervalRef = useRef(null)
   const isPausedRef = useRef(false)
+  const [currentPestIndex, setCurrentPestIndex] = useState(0)
+
+  // Pest list for rotating animation
+  const pests = ['Rodents', 'Ants', 'Mosquitoes', 'Cockroaches', 'Termites', 'Bedbugs', 'Spiders', 'Flies']
+
+  // Rotate pest text every 2 seconds
+  useEffect(() => {
+    const pestInterval = setInterval(() => {
+      setCurrentPestIndex((prevIndex) => (prevIndex + 1) % pests.length)
+    }, 2000)
+
+    return () => clearInterval(pestInterval)
+  }, [pests.length])
 
   // Services data
   const pestServices = [
@@ -245,16 +258,16 @@ function Home() {
             <div className="hero-badge">
               <span>FREE INSPECTION</span>
             </div>
-            <h1 className="hero-title">AQUARIUS PEST CONTROL SERVICES</h1>
-            <p className="hero-tagline">Reliable & Professional Pest Control Services</p>
+            <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance hero-title-custom">
+              Your Trusted Partner in Eliminating Pests and Protecting Your Property
+            </h1>
+            <div className="hero-pest-animation">
+              <span className="pest-word" key={currentPestIndex}>{pests[currentPestIndex]}</span>
+            </div>
             <div className="hero-cta-buttons">
               <Button asChild size="lg" className="btn-primary-hero">
                 <Link to="/booking">Book Free Inspection</Link>
               </Button>
-              <a href="tel:09265557359" className="btn-secondary-hero-link">
-                <Phone size={20} />
-                Call Now
-              </a>
             </div>
           </div>
         </div>
