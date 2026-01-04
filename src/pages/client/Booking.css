@@ -52,9 +52,10 @@
 
 .booking-container {
   max-width: 1000px;
-  margin: -3rem auto 0;
+  margin: 1rem auto 0;
   position: relative;
   z-index: 2;
+  padding: 0 0.75rem;
 }
 
 .booking-warning-card {
@@ -151,8 +152,8 @@
   }
 
   .booking-container {
-    margin-top: -2rem;
-    padding: 0 1rem;
+    margin-top: 1rem;
+    padding: 0 0.75rem;
   }
 
   .form-grid {

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { Building2, Menu, X, Wrench, Calendar, Mail, Shield } from 'lucide-react'
+import { Menu, X, Wrench, Calendar, Mail, Shield } from 'lucide-react'
 import './ClientLayout.css'
 
 function ClientLayout() {
@@ -32,11 +32,10 @@ function ClientLayout() {
           <div className="navbar-left">
             <Link to="/" className="logo-modern">
               <div className="logo-icon-modern">
-                <Building2 size={32} />
+                <img src="/image/logo.jpg" alt="Aquarius Pest Control Services" className="logo-img" />
               </div>
               <div className="logo-text">
-                <h2>Aquarius Pest Control</h2>
-                <span className="logo-subtitle">Services</span>
+                <h2>Aquarius Pest Control Services</h2>
               </div>
             </Link>
           </div>
@@ -97,7 +96,7 @@ function ClientLayout() {
           <div className="footer-content">
             <div className="footer-section">
               <div className="footer-logo">
-                <Building2 size={32} />
+                <img src="/image/logo.jpg" alt="Aquarius Pest Control Services" className="footer-logo-img" />
                 <h3>Aquarius Pest Control Services</h3>
               </div>
               <p className="footer-description">

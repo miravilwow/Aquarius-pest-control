@@ -1,813 +1,614 @@
-import { useEffect, useRef, useState } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, Mail, Clock, CheckCircle2, Shield, Award, Users, Building2, Home as HomeIcon, UtensilsCrossed, Hotel, School, Briefcase, Building, Sparkles, ArrowRight } from 'lucide-react'
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import { Check, Phone, FileText, Shield, Award, Users, Leaf, DollarSign, Clock, Heart } from 'lucide-react'
 import './Home.css'
 
 function Home() {
-  const heroRef = useRef(null)
-  const featuresRef = useRef(null)
-  const servicesRef = useRef(null)
-  const whyChooseRef = useRef(null)
-  const serviceAreasRef = useRef(null)
-  const certificationsRef = useRef(null)
+  const [carouselApi, setCarouselApi] = useState(null)
+  const [current, setCurrent] = useState(0)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedService, setSelectedService] = useState(null)
+  const autoAdvanceIntervalRef = useRef(null)
+  const isPausedRef = useRef(false)
 
-  useEffect(() => {
-    // CRITICAL: Ensure content is visible FIRST before any animations
-    const ensureVisibility = () => {
-      const elements = [
-        heroRef.current,
-        featuresRef.current,
-        servicesRef.current,
-        whyChooseRef.current,
-        serviceAreasRef.current,
-        certificationsRef.current
-      ]
-      
-      elements.forEach(el => {
-        if (el) {
-          el.style.opacity = '1'
-          el.style.visibility = 'visible'
-          el.style.display = el === heroRef.current ? 'flex' : 'block'
-          
-          // Also set children visible
-          if (el.children) {
-            Array.from(el.children).forEach(child => {
-              child.style.opacity = '1'
-              child.style.visibility = 'visible'
-            })
-          }
-        }
-      })
-      
-      // Force all home content visible
-      const homeElement = document.querySelector('.home')
-      if (homeElement) {
-        homeElement.style.opacity = '1'
-        homeElement.style.visibility = 'visible'
-        homeElement.style.display = 'block'
-      }
-    }
-    
-    // Set visibility immediately
-    ensureVisibility()
-    
-    // Also set after a short delay to override any GSAP
-    setTimeout(ensureVisibility, 100)
-    setTimeout(ensureVisibility, 500)
-    
-    // Load GSAP animations asynchronously without blocking render
-    const loadAnimations = async () => {
-      try {
-        const gsapModule = await import('gsap')
-        const scrollTriggerModule = await import('gsap/ScrollTrigger')
-        const gsap = gsapModule.gsap || gsapModule.default
-        const ScrollTrigger = scrollTriggerModule.ScrollTrigger || scrollTriggerModule.default
-        
-        if (!gsap || !ScrollTrigger) {
-          console.warn('GSAP not available, content will show without animations')
-          return
-        }
-        
-        gsap.registerPlugin(ScrollTrigger)
-        
-        // Small delay to ensure DOM is ready
-        setTimeout(() => {
-          try {
-            // Hero animation - use fromTo to ensure visibility
-            if (heroRef.current?.children?.length > 0) {
-              const children = Array.from(heroRef.current.children)
-              // Ensure visible first
-              gsap.set(children, { opacity: 1, y: 0, visibility: 'visible' })
-              // Animate from hidden to visible
-              gsap.fromTo(children, 
-                { y: 50, opacity: 0 },
-                {
-                  y: 0,
-                  opacity: 1,
-                  duration: 1,
-                  stagger: 0.2,
-                  ease: "power3.out",
-                  immediateRender: false // Don't apply initial state immediately
-                }
-              )
-            }
-
-            // Features animation
-            if (featuresRef.current?.children?.length > 0) {
-              const children = Array.from(featuresRef.current.children)
-              // Ensure visible first
-              gsap.set(children, { opacity: 1, y: 0, visibility: 'visible' })
-              // Animate with ScrollTrigger
-              gsap.fromTo(children,
-                { y: 50, opacity: 0 },
-                {
-                  scrollTrigger: {
-                    trigger: featuresRef.current,
-                    start: "top 80%",
-                    toggleActions: "play none none reverse"
-                  },
-                  y: 0,
-                  opacity: 1,
-                  duration: 0.8,
-                  stagger: 0.1,
-                  ease: "power2.out",
-                  immediateRender: false
-                }
-              )
-            }
-
-            // Services animation
-            if (servicesRef.current?.children?.length > 0) {
-              const children = Array.from(servicesRef.current.children)
-              // Ensure visible first
-              gsap.set(children, { opacity: 1, scale: 1, visibility: 'visible' })
-              // Animate with ScrollTrigger
-              gsap.fromTo(children,
-                { scale: 0.8, opacity: 0 },
-                {
-                  scrollTrigger: {
-                    trigger: servicesRef.current,
-                    start: "top 80%",
-                    toggleActions: "play none none reverse"
-                  },
-                  scale: 1,
-                  opacity: 1,
-                  duration: 0.6,
-                  stagger: 0.1,
-                  ease: "back.out(1.7)",
-                  immediateRender: false
-                }
-              )
-            }
-
-            // Why Choose Us animation
-            if (whyChooseRef.current?.children?.length > 0) {
-              const children = Array.from(whyChooseRef.current.children)
-              // Ensure visible first
-              gsap.set(children, { opacity: 1, x: 0, visibility: 'visible' })
-              // Animate with ScrollTrigger
-              gsap.fromTo(children,
-                { x: -50, opacity: 0 },
-                {
-                  scrollTrigger: {
-                    trigger: whyChooseRef.current,
-                    start: "top 80%",
-                    toggleActions: "play none none reverse"
-                  },
-                  x: 0,
-                  opacity: 1,
-                  duration: 0.8,
-                  stagger: 0.15,
-                  ease: "power2.out",
-                  immediateRender: false
-                }
-              )
-            }
-
-            // Service Areas animation
-            if (serviceAreasRef.current?.children?.length > 0) {
-              const children = Array.from(serviceAreasRef.current.children)
-              // Ensure visible first
-              gsap.set(children, { opacity: 1, y: 0, visibility: 'visible' })
-              // Animate with ScrollTrigger
-              gsap.fromTo(children,
-                { y: 30, opacity: 0 },
-                {
-                  scrollTrigger: {
-                    trigger: serviceAreasRef.current,
-                    start: "top 80%",
-                    toggleActions: "play none none reverse"
-                  },
-                  y: 0,
-                  opacity: 1,
-                  duration: 0.6,
-                  stagger: 0.05,
-                  ease: "power2.out",
-                  immediateRender: false
-                }
-              )
-            }
-
-            // Certifications animation
-            if (certificationsRef.current?.children?.length > 0) {
-              const children = Array.from(certificationsRef.current.children)
-              // Ensure visible first
-              gsap.set(children, { opacity: 1, scale: 1, visibility: 'visible' })
-              // Animate with ScrollTrigger
-              gsap.fromTo(children,
-                { scale: 0, opacity: 0 },
-                {
-                  scrollTrigger: {
-                    trigger: certificationsRef.current,
-                    start: "top 80%",
-                    toggleActions: "play none none reverse"
-                  },
-                  scale: 1,
-                  opacity: 1,
-                  duration: 0.5,
-                  stagger: 0.1,
-                  ease: "back.out(1.7)",
-                  immediateRender: false
-                }
-              )
-            }
-          } catch (error) {
-            console.error('GSAP animation error:', error)
-          }
-        }, 500) // Increased delay to ensure content renders first
-      } catch (error) {
-        console.warn('GSAP import failed, content will show without animations:', error)
-      }
-    }
-    
-    loadAnimations()
-  }, [])
-
-  const serviceTypes = [
-    { icon: HomeIcon, label: 'Residential House' },
-    { icon: Building2, label: 'Commercial Building' },
-    { icon: Building, label: 'Industrial Building' },
-    { icon: Building2, label: 'Warehouse' },
-    { icon: UtensilsCrossed, label: 'Restaurant' },
-    { icon: Hotel, label: 'Resort' },
-    { icon: Building, label: 'Hospital' },
-    { icon: School, label: 'School Building' },
-    { icon: Briefcase, label: 'Office' },
-    { icon: Building, label: 'Condominium' },
-    { icon: Building, label: 'Spa' }
-  ]
-
-  const serviceAreas = [
-    'Bulacan', 'Marilao Bulacan', 'MALOLOS BULACAN', 'Bocaue Bulacan', 'Meycauayan Bulacan',
-    'Calumpit Bulacan', 'San Jose Del Monte Bulacan', 'Plaridel Bulacan', 'Baliuag Bulacan',
-    'Hagonoy Bulacan', 'Paombong Bulacan', 'Sta Maria Bulacan', 'Balagtas Bulacan',
-    'Guiguinto Bulacan', 'Sta Rita Bulacan', 'Obando Bulacan', 'Pandi Bulacan',
-    'Tarlac', 'Cavite', 'Laguna', 'Pangasinan', 'Zambales', 'Pampanga',
-    'Nueva Ecija', 'Bataan', 'Olongapo', 'Caloocan City', 'Quezon City',
-    'Mandaluyong', 'Metro Manila'
-  ]
-
+  // Services data
   const pestServices = [
     {
-      name: 'Termite control and extermination',
-      image: '/image/termite.jpg'
+      id: 1,
+      name: 'Termite Control and Extermination',
+      description: 'Professional termite control and extermination with 1-year guarantee',
+      price: 300,
+      image: '/image/termite.jpg',
+      details: 'Comprehensive termite inspection and treatment to protect your property from costly termite damage. Includes thorough treatment coverage of infested and non-infested areas.',
+      features: [
+        'Termite dustings powder treatment',
+        'Wood drenching treatment',
+        'Injection treatment',
+        'Mound demolition',
+        'Slab drilling',
+        'Soil treatment of surrounding areas',
+        '1 Year Guarantee'
+      ],
+      coverage: 'Infested and non-infested areas',
+      available: true
     },
     {
-      name: 'Pest control (Cockroach, Ticks and flea, Dry wood Termites, Bedbugs, Mosquitos, Bukbok, Ants)',
-      image: '/image/tolits.jpg'
+      id: 2,
+      name: 'Cockroach Control',
+      description: 'Complete cockroach removal and prevention services',
+      price: 200,
+      image: '/image/tolits.jpg',
+      details: 'Advanced cockroach elimination using FDA-approved safe and effective methods. Includes spray and misting treatment for crawling insects.',
+      features: [
+        'Deep cleaning',
+        'Chemical treatment',
+        'Bait stations',
+        'Spray treatment',
+        'Misting treatment',
+        'Guaranteed results'
+      ],
+      coverage: 'All areas including kitchens, bathrooms, and storage areas',
+      available: true
     },
     {
-      name: 'Rodent control and extermination',
-      image: '/image/general_pest.jpg'
+      id: 3,
+      name: 'Rodent Control',
+      description: 'Safe rodent removal and prevention',
+      price: 250,
+      image: '/image/general_pest.jpg',
+      details: 'Humane and effective rodent control services to protect your property from mice, rats, and other rodents.',
+      features: [
+        'Humane removal',
+        'Entry point sealing',
+        'Prevention measures',
+        'Regular monitoring',
+        'Trap installation',
+        'Follow-up service'
+      ],
+      coverage: 'All entry points and infested areas',
+      available: true
     },
     {
-      name: 'General pest management services',
-      image: '/image/general_pest.jpg'
+      id: 4,
+      name: 'Bedbug Control',
+      description: 'Professional bedbug treatment and elimination',
+      price: 350,
+      image: '/image/image2.jpg',
+      details: 'Comprehensive bedbug treatment using heat treatment and chemical solutions. Complete elimination guaranteed.',
+      features: [
+        'Heat treatment',
+        'Chemical treatment',
+        'Mattress treatment',
+        'Furniture treatment',
+        'Follow-up inspection',
+        'Guaranteed elimination'
+      ],
+      coverage: 'All affected areas including bedrooms, furniture, and fabrics',
+      available: false
     },
     {
-      name: 'Inspections and consultation',
-      image: '/image/image2.jpg'
+      id: 5,
+      name: 'Ant Control',
+      description: 'Effective ant elimination and prevention',
+      price: 150,
+      image: '/image/ant.jpg',
+      details: 'Our comprehensive ant control service includes inspection, treatment, and prevention strategies to keep your property ant-free.',
+      features: [
+        'Professional inspection',
+        'Targeted treatment',
+        'Bait stations',
+        'Prevention tips',
+        'Follow-up service',
+        'Entry point sealing'
+      ],
+      coverage: 'Kitchen areas, food storage, and entry points',
+      available: false
     }
   ]
 
-  const treatmentCoverage = [
-    'Infested and non-infested areas',
-    'Termite dustings powder treatment',
-    'Wood drenching treatment',
-    'Injection treatment',
-    'Mound demolition',
-    'Slab drilling',
-    'Soil treatment of surrounding areas'
-  ]
+  // Filter only available services
+  const validServices = pestServices.filter(service => service.available)
 
-  const whyChooseUs = [
-    { 
-      icon: CheckCircle2, 
-      title: 'No Hidden Charges', 
-      description: 'Transparent pricing with no surprise fees. What you see is what you pay.',
-      color: '#10b981',
-      gradient: 'from-green-500 to-emerald-600'
-    },
-    { 
-      icon: Shield, 
-      title: 'FDA Approved Chemicals', 
-      description: 'Safe and approved pest control solutions for your family and pets.',
-      color: '#3b82f6',
-      gradient: 'from-blue-500 to-indigo-600'
-    },
-    { 
-      icon: Users, 
-      title: 'Expert Technicians', 
-      description: '18 years of experience with trained and certified professionals.',
-      color: '#8b5cf6',
-      gradient: 'from-purple-500 to-violet-600'
-    },
-    { 
-      icon: Sparkles, 
-      title: 'Eco-Friendly Solutions', 
-      description: 'Environmentally conscious treatments that protect your surroundings.',
-      color: '#06b6d4',
-      gradient: 'from-cyan-500 to-teal-600'
-    },
-    { 
-      icon: Award, 
-      title: 'Competitive Pricing', 
-      description: 'Affordable rates without compromising on quality and effectiveness.',
-      color: '#f59e0b',
-      gradient: 'from-amber-500 to-orange-600'
-    },
-    { 
-      icon: Clock, 
-      title: 'Reliable Service', 
-      description: 'Prompt response and timely service delivery guaranteed.',
-      color: '#ef4444',
-      gradient: 'from-red-500 to-rose-600'
-    },
-    { 
-      icon: CheckCircle2, 
-      title: '100% Satisfaction', 
-      description: 'Complete satisfaction guarantee or we\'ll make it right.',
-      color: '#10b981',
-      gradient: 'from-green-500 to-emerald-600'
+  // Setup carousel API
+  useEffect(() => {
+    if (!carouselApi) {
+      return
     }
-  ]
 
-  // Debug: Log to console
-  console.log('Home component rendering...')
+    setCurrent(carouselApi.selectedScrollSnap())
+
+    carouselApi.on('select', () => {
+      setCurrent(carouselApi.selectedScrollSnap())
+    })
+  }, [carouselApi])
+
+  // Auto-advance carousel
+  const startAutoAdvance = useCallback(() => {
+    if (autoAdvanceIntervalRef.current) {
+      clearInterval(autoAdvanceIntervalRef.current)
+    }
+
+    if (!carouselApi || validServices.length <= 1 || isPausedRef.current) {
+      return
+    }
+
+    autoAdvanceIntervalRef.current = setInterval(() => {
+      if (!isPausedRef.current && carouselApi) {
+        carouselApi.scrollNext()
+      }
+    }, 6000) // 6 seconds
+  }, [carouselApi, validServices.length])
+
+  const pauseAutoAdvance = useCallback(() => {
+    isPausedRef.current = true
+    if (autoAdvanceIntervalRef.current) {
+      clearInterval(autoAdvanceIntervalRef.current)
+      autoAdvanceIntervalRef.current = null
+    }
+  }, [])
+
+  const resumeAutoAdvance = useCallback(() => {
+    isPausedRef.current = false
+    // Resume after 3 seconds of idle
+    setTimeout(() => {
+      if (!isPausedRef.current) {
+        startAutoAdvance()
+      }
+    }, 3000)
+  }, [startAutoAdvance])
+
+  useEffect(() => {
+    startAutoAdvance()
+    return () => {
+      if (autoAdvanceIntervalRef.current) {
+        clearInterval(autoAdvanceIntervalRef.current)
+      }
+    }
+  }, [startAutoAdvance])
+
+  // Handle next button (for pagination)
+  const handleNext = (e) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    if (carouselApi) {
+      pauseAutoAdvance()
+      carouselApi.scrollNext()
+      resumeAutoAdvance()
+    }
+  }
+
+  // Handle previous button (for pagination)
+  const handlePrevious = (e) => {
+    e?.preventDefault()
+    e?.stopPropagation()
+    if (carouselApi) {
+      pauseAutoAdvance()
+      carouselApi.scrollPrev()
+      resumeAutoAdvance()
+    }
+  }
+
+  // Handle pagination click
+  const handlePageChange = (page) => {
+    if (carouselApi) {
+      pauseAutoAdvance()
+      carouselApi.scrollTo(page - 1)
+      resumeAutoAdvance()
+    }
+  }
+
+  // Handle view more
+  const handleViewMore = (service) => {
+    setSelectedService(service)
+    setIsModalOpen(true)
+  }
+
+  // Handle carousel hover
+  const handleCarouselHover = (isHovered) => {
+    if (isHovered) {
+      pauseAutoAdvance()
+    } else {
+      resumeAutoAdvance()
+    }
+  }
 
   return (
-    <div className="home" style={{ 
-      display: 'block', 
-      visibility: 'visible', 
-      opacity: 1, 
-      minHeight: '100vh', 
-      background: '#ffffff', 
-      width: '100%',
-      position: 'relative',
-      zIndex: 1
-    }}>
+    <div className="home">
       {/* Hero Section */}
-      <section className="hero" ref={heroRef} style={{ display: 'flex', visibility: 'visible', opacity: 1, position: 'relative', width: '100%' }}>
-        <div className="hero-background"></div>
+      <section className="hero-modern">
         <div className="container">
           <div className="hero-content">
-            <h1 className="hero-title">
-              AQUARIUS PEST CONTROL SERVICES
-            </h1>
-            <p className="hero-subtitle">
-              Trusted Pest Control for 18 Years | DTI Registered | With Business & Sanitary Permits
-            </p>
-            <div className="hero-cta">
-              <Link to="/booking" className="btn-primary">
-                <Sparkles className="btn-icon" />
-                FREE INSPECTION!
-              </Link>
-              <Link to="/contact" className="btn-secondary">
-                Contact Us
-              </Link>
+            <div className="hero-badge">
+              <span>FREE INSPECTION</span>
             </div>
-            <div className="hero-contact">
-              <a href="tel:09265557359" className="contact-link">
-                <Phone className="contact-icon" />
-                <span>09265557359</span>
-              </a>
-              <a href="mailto:rodolfomiravil65@gmail.com" className="contact-link">
-                <Mail className="contact-icon" />
-                <span>rodolfomiravil65@gmail.com</span>
+            <h1 className="hero-title">AQUARIUS PEST CONTROL SERVICES</h1>
+            <p className="hero-tagline">Reliable & Professional Pest Control Services</p>
+            <div className="hero-cta-buttons">
+              <Button asChild size="lg" className="btn-primary-hero">
+                <Link to="/booking">Book Free Inspection</Link>
+              </Button>
+              <a href="tel:09265557359" className="btn-secondary-hero-link">
+                <Phone size={20} />
+                Call Now
               </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Why Choose Aquarius Section - Simplified Modern Design */}
-      <section className="why-choose-section">
-        <div className="container">
-          <div className="section-header" ref={whyChooseRef}>
-            <h2 className="section-title">Why Aquarius Pest Control Services?</h2>
-            <p className="section-subtitle">
-              Professional, Legitimate, and Trusted Pest Control for 18 Years
-            </p>
-            <Separator className="mt-4 mb-8 w-24 mx-auto bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-          </div>
-          <div className="why-choose-simplified-grid">
-            {whyChooseUs.map((item, index) => {
-              const Icon = item.icon
-              return (
-                <div 
-                  key={index} 
-                  className="why-choose-item-simplified"
-                  style={{ 
-                    '--accent-color': item.color,
-                    '--accent-color-rgb': item.color === '#10b981' ? '16, 185, 129' :
-                                         item.color === '#3b82f6' ? '59, 130, 246' :
-                                         item.color === '#8b5cf6' ? '139, 92, 246' :
-                                         item.color === '#06b6d4' ? '6, 182, 212' :
-                                         item.color === '#f59e0b' ? '245, 158, 11' :
-                                         item.color === '#ef4444' ? '239, 68, 68' : '59, 130, 246',
-                    animationDelay: `${index * 0.05}s`
-                  }}
-                >
-                  <div className="why-choose-item-icon-wrapper">
-                    <div className="why-choose-item-icon-bg" style={{ backgroundColor: `${item.color}15` }}>
-                      <Icon size={20} className="why-choose-item-icon" style={{ color: item.color }} />
-                    </div>
-                  </div>
-                  <div className="why-choose-item-content">
-                    <h3 className="why-choose-item-title">{item.title}</h3>
-                    <p className="why-choose-item-description">{item.description}</p>
-                  </div>
-                  <div className="why-choose-item-indicator"></div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Certifications Section - Simplified */}
-      <section className="certifications-section">
-        <div className="container">
-          <div className="section-header" ref={certificationsRef}>
-            <h2 className="section-title">Our Certifications & Permits</h2>
-            <p className="section-subtitle">Legitimate and fully compliant pest control services</p>
-            <Separator className="mt-4 mb-8 w-24 mx-auto bg-gradient-to-r from-transparent via-white to-transparent" />
-          </div>
-          <div className="certifications-simplified-list">
-            <div className="cert-item-simplified">
-              <div className="cert-item-icon-wrapper">
-                <Award className="cert-item-icon" />
-              </div>
-              <div className="cert-item-content">
-                <h3 className="cert-item-title">DTI Registered</h3>
-                <p className="cert-item-description">Department of Trade and Industry</p>
-              </div>
-            </div>
-            <div className="cert-item-simplified">
-              <div className="cert-item-icon-wrapper">
-                <Shield className="cert-item-icon" />
-              </div>
-              <div className="cert-item-content">
-                <h3 className="cert-item-title">Business Permit</h3>
-                <p className="cert-item-description">Permit to Operate</p>
-              </div>
-            </div>
-            <div className="cert-item-simplified">
-              <div className="cert-item-icon-wrapper">
-                <Shield className="cert-item-icon" />
-              </div>
-              <div className="cert-item-content">
-                <h3 className="cert-item-title">Sanitary Permit</h3>
-                <p className="cert-item-description">Permit to Operate</p>
-              </div>
-            </div>
-            <div className="cert-item-simplified">
-              <div className="cert-item-icon-wrapper">
-                <Award className="cert-item-icon" />
-              </div>
-              <div className="cert-item-content">
-                <h3 className="cert-item-title">BIR Registration</h3>
-                <p className="cert-item-description">Bureau of Internal Revenue</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Services We Offer Section */}
-      <section className="services-offered-section-modern">
-        <div className="container">
-          <div className="services-offered-header">
-            <h2 className="section-title">Services We Offer</h2>
-            <p className="section-subtitle">Professional pest control services for various property types</p>
-            <Separator className="mt-4 mb-8 w-24 mx-auto bg-gradient-to-r from-transparent via-blue-500 to-transparent" />
-          </div>
-          <div className="service-types-horizontal-modern" ref={servicesRef}>
-            {serviceTypes.map((service, index) => {
-              const Icon = service.icon
-              return (
-                <Card 
-                  key={index} 
-                  className="service-type-card-modern group"
-                >
-                  <CardContent className="p-6 flex items-center gap-4">
-                    <div className="service-icon-modern-wrapper">
-                      <div className="service-icon-modern">
-                        <Icon className="service-icon-svg" size={28} />
-                      </div>
-                      <div className="service-icon-glow"></div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="service-label-modern">{service.label}</h3>
-                      <div className="service-label-underline"></div>
-                    </div>
-                    <div className="service-arrow-modern">
-                      <ArrowRight size={20} />
-                    </div>
-                  </CardContent>
-                  <div className="service-card-shine"></div>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* Our Services Section - Carousel */}
-      <section className="our-services-section">
-        <div className="container">
-          <h2 className="section-title">Our Services</h2>
-          <div className="services-carousel-wrapper">
-            <Carousel
-              opts={{
-                align: "center",
-                loop: true,
-                slidesToScroll: 1,
-                skipSnaps: false,
-                dragFree: false,
-              }}
-              className="services-carousel"
-              setApi={(api) => {
-                if (api) {
-                  let isUpdating = false
-                  
-                  const updateScale = () => {
-                    if (isUpdating) return
-                    isUpdating = true
-                    
-                    // Use multiple animation frames to ensure DOM is fully updated
-                    requestAnimationFrame(() => {
-                      requestAnimationFrame(() => {
-                        try {
-                          const selectedIndex = api.selectedScrollSnap()
-                          const slides = api.slideNodes()
-                          const slideCount = api.slideNodes().length
-                          
-                          if (!slides || slides.length === 0) {
-                            isUpdating = false
-                            return
-                          }
-                          
-                          // Get all carousel items (including duplicates for looping)
-                          const allItems = document.querySelectorAll('.services-carousel [data-service-index]')
-                          
-                          // Ensure all slides are visible and properly indexed
-                          slides.forEach((slide, slideIndex) => {
-                            if (!slide) return
-                            
-                            // Find the actual service index from the slide
-                            const slideElement = slide.querySelector('[data-service-index]')
-                            const serviceIndex = slideElement ? parseInt(slideElement.getAttribute('data-service-index')) : slideIndex
-                            
-                            // Make sure slide is visible
-                            slide.style.display = ''
-                            slide.style.visibility = 'visible'
-                            slide.style.opacity = ''
-                            
-                            // Reset all slides first
-                            slide.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease'
-                            slide.style.transformOrigin = 'center'
-                            
-                            // Check if this slide is the selected one
-                            // Handle looping by checking the actual selected index
-                            const actualSelectedIndex = selectedIndex % slideCount
-                            const actualServiceIndex = serviceIndex % slideCount
-                            
-                            if (actualServiceIndex === actualSelectedIndex) {
-                              slide.style.transform = 'scale(1.5)'
-                              slide.style.opacity = '1'
-                              slide.style.zIndex = '10'
-                            } else {
-                              slide.style.transform = 'scale(1.0)'
-                              slide.style.opacity = '0.7'
-                              slide.style.zIndex = '1'
-                            }
-                          })
-                          
-                          // Also update all carousel items directly
-                          allItems.forEach((item, index) => {
-                            const serviceIndex = parseInt(item.getAttribute('data-service-index'))
-                            const actualSelectedIndex = selectedIndex % slideCount
-                            const actualServiceIndex = serviceIndex % slideCount
-                            
-                            const card = item.querySelector('.service-carousel-card')
-                            if (card) {
-                              if (actualServiceIndex === actualSelectedIndex) {
-                                card.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease'
-                                card.style.transform = 'scale(1.5)'
-                                card.style.opacity = '1'
-                                card.style.zIndex = '10'
-                              } else {
-                                card.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease'
-                                card.style.transform = 'scale(1.0)'
-                                card.style.opacity = '0.7'
-                                card.style.zIndex = '1'
-                              }
-                            }
-                          })
-                          
-                          // Also update the carousel content container
-                          const carouselContent = document.querySelector('.services-carousel .carousel-content')
-                          if (carouselContent) {
-                            carouselContent.style.display = ''
-                            carouselContent.style.visibility = 'visible'
-                            carouselContent.style.opacity = '1'
-                          }
-                        } catch (error) {
-                          console.error('Error updating scale:', error)
-                        } finally {
-                          isUpdating = false
-                        }
-                      })
-                    })
-                  }
-                  
-                  // Update scale on selection change (most important)
-                  api.on('select', () => {
-                    setTimeout(() => {
-                      updateScale()
-                    }, 50)
-                  })
-                  
-                  // Update scale on reinitialization
-                  api.on('reInit', () => {
-                    setTimeout(() => {
-                      updateScale()
-                    }, 100)
-                  })
-                  
-                  // Update scale when slides change (for looping)
-                  api.on('slidesChanged', () => {
-                    setTimeout(() => {
-                      updateScale()
-                    }, 50)
-                  })
-                  
-                  // Update scale on pointer up (after drag/click)
-                  api.on('pointerUp', () => {
-                    setTimeout(() => {
-                      updateScale()
-                    }, 100)
-                  })
-                  
-                  // Update scale on settle (when carousel settles after scroll)
-                  api.on('settle', () => {
-                    setTimeout(() => {
-                      updateScale()
-                    }, 50)
-                  })
-                  
-                  // Initial scale
-                  setTimeout(() => {
-                    updateScale()
-                  }, 200)
-                }
-              }}
-            >
-              <CarouselContent className="-ml-2 md:-ml-4">
-                {pestServices.map((service, index) => (
-                  <CarouselItem 
-                    key={`service-${index}`} 
-                    className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/3"
-                    data-service-index={index}
-                  >
-                    <div className="p-1">
-                      <Card className="service-carousel-card">
-                        <div className="service-carousel-image-wrapper">
-                          <img 
-                            src={service.image || '/image/general_pest.jpg'} 
-                            alt={service.name}
-                            className="service-carousel-image"
-                            loading="lazy"
-                          />
-                        </div>
-                        <CardContent className="flex flex-col p-4 min-h-[180px]">
-                          <p className="service-carousel-text text-center font-medium mb-4 flex-grow">
-                            {service.name}
-                          </p>
-                          <div className="service-carousel-buttons flex gap-2 mt-auto">
-                            <Button
-                              variant="outline"
-                              className="service-carousel-view-more flex-1"
-                              onClick={() => window.location.href = '/services'}
-                            >
-                              View More
-                            </Button>
-                            <Button
-                              className="service-carousel-book flex-1 bg-blue-600 hover:bg-blue-700"
-                              onClick={() => window.location.href = '/booking'}
-                            >
-                              Book Service
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious className="carousel-nav-btn" />
-              <CarouselNext className="carousel-nav-btn" />
-            </Carousel>
-          </div>
-        </div>
-      </section>
-
-      {/* Comprehensive Treatment Section */}
-      <section className="treatment-section">
-        <div className="container">
-          <h2 className="section-title">Our Comprehensive Pest Control Services</h2>
-          <div className="treatment-highlight">
-            <Sparkles className="highlight-icon" />
-            <h3>1 Year Guarantee Treatment</h3>
-          </div>
-          <div className="treatment-content">
-            <div className="treatment-column">
-              <h3>Thorough Treatment Coverage:</h3>
-              <ul className="treatment-list">
-                {treatmentCoverage.map((item, index) => (
-                  <li key={index}>
-                    <CheckCircle2 className="list-icon" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="treatment-column">
-              <h3>Effective Treatments for:</h3>
-              <ul className="treatment-list">
-                <li><CheckCircle2 className="list-icon" />Crawling insects (spray and misting treatment)</li>
-                <li><CheckCircle2 className="list-icon" />Flying insects (misting treatment) 🐛🦗🦟🪰🪳🐜</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Service Areas Section */}
-      <section className="service-areas-section">
-        <div className="container">
-          <h2 className="section-title">Service Areas</h2>
-          <div className="service-areas-grid" ref={serviceAreasRef}>
-            {serviceAreas.map((area, index) => (
-              <div key={index} className="area-tag">
-                #{area}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="features" ref={featuresRef}>
+      {/* Why Choose Us - Permits & Legitimacy */}
+      <section className="permits-section">
         <div className="container">
           <h2 className="section-title">Why Choose Us</h2>
-          <div className="features-grid">
-            <div className="feature-card">
-              <div className="feature-icon">✓</div>
-              <h3>Expert Technicians</h3>
-              <p>Licensed and certified professionals</p>
+          <p className="section-subtitle">Fully Licensed & Legitimate Operations</p>
+          <div className="permits-grid">
+            <Card className="permit-card">
+              <CardContent className="permit-card-content">
+                <div className="permit-icon">
+                  <FileText size={32} />
+                </div>
+                <h3>With DTI Permit to Operate</h3>
+                <p>Legally registered with the Department of Trade and Industry</p>
+              </CardContent>
+            </Card>
+            <Card className="permit-card">
+              <CardContent className="permit-card-content">
+                <div className="permit-icon">
+                  <FileText size={32} />
+                </div>
+                <h3>With Business Permit</h3>
+                <p>Fully compliant with local business regulations</p>
+              </CardContent>
+            </Card>
+            <Card className="permit-card">
+              <CardContent className="permit-card-content">
+                <div className="permit-icon">
+                  <Shield size={32} />
+                </div>
+                <h3>With Sanitary Permit</h3>
+                <p>Certified safe and sanitary operations</p>
+              </CardContent>
+            </Card>
+            <Card className="permit-card">
+              <CardContent className="permit-card-content">
+                <div className="permit-icon">
+                  <FileText size={32} />
+                </div>
+                <h3>With BIR Registration</h3>
+                <p>Registered with the Bureau of Internal Revenue</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Effective Treatments */}
+      <section className="treatments-section">
+        <div className="container">
+          <h2 className="section-title">Effective Treatments</h2>
+          <p className="section-subtitle">Professional pest control solutions tailored to your needs</p>
+          <div className="treatments-grid">
+            <Card className="treatment-card">
+              <CardContent className="treatment-card-content">
+                <div className="treatment-icon">
+                  <Shield size={40} />
+                </div>
+                <h3>Crawling Insects</h3>
+                <p className="treatment-method">Spray & Misting</p>
+                <p className="treatment-description">
+                  Comprehensive treatment for ants, cockroaches, and other crawling pests using advanced spray and misting techniques.
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="treatment-card">
+              <CardContent className="treatment-card-content">
+                <div className="treatment-icon">
+                  <Shield size={40} />
+                </div>
+                <h3>Flying Insects</h3>
+                <p className="treatment-method">Misting Treatment</p>
+                <p className="treatment-description">
+                  Effective misting treatment for mosquitoes, flies, and other flying insects to keep your space pest-free.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us - Service Benefits */}
+      <section className="benefits-section">
+        <div className="container">
+          <h2 className="section-title">Why Choose Us</h2>
+          <p className="section-subtitle">Your Trusted Partner in Pest Control</p>
+          <div className="benefits-grid">
+            <Card className="benefit-card">
+              <CardContent className="benefit-card-content">
+                <div className="benefit-icon">
+                  <DollarSign size={28} />
+                </div>
+                <h3>No Hidden Charges</h3>
+                <p>Transparent pricing with no surprise fees</p>
+              </CardContent>
+            </Card>
+            <Card className="benefit-card">
+              <CardContent className="benefit-card-content">
+                <div className="benefit-icon">
+                  <Award size={28} />
+                </div>
+                <h3>FDA-Approved Chemicals</h3>
+                <p>Safe and approved treatment solutions</p>
+              </CardContent>
+            </Card>
+            <Card className="benefit-card">
+              <CardContent className="benefit-card-content">
+                <div className="benefit-icon">
+                  <Users size={28} />
+                </div>
+                <h3>Trained & Experienced Technicians</h3>
+                <p>Professional team with years of expertise</p>
+              </CardContent>
+            </Card>
+            <Card className="benefit-card">
+              <CardContent className="benefit-card-content">
+                <div className="benefit-icon">
+                  <Leaf size={28} />
+                </div>
+                <h3>Environmentally Friendly</h3>
+                <p>Eco-conscious pest control methods</p>
+              </CardContent>
+            </Card>
+            <Card className="benefit-card">
+              <CardContent className="benefit-card-content">
+                <div className="benefit-icon">
+                  <DollarSign size={28} />
+                </div>
+                <h3>Competitive Pricing</h3>
+                <p>Affordable rates without compromising quality</p>
+              </CardContent>
+            </Card>
+            <Card className="benefit-card">
+              <CardContent className="benefit-card-content">
+                <div className="benefit-icon">
+                  <Clock size={28} />
+                </div>
+                <h3>Prompt & Reliable Service</h3>
+                <p>On-time service delivery guaranteed</p>
+              </CardContent>
+            </Card>
+            <Card className="benefit-card">
+              <CardContent className="benefit-card-content">
+                <div className="benefit-icon">
+                  <Heart size={28} />
+                </div>
+                <h3>100% Satisfaction Guarantee</h3>
+                <p>We stand behind our work with full guarantee</p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Our Services Section with Carousel */}
+      {validServices.length > 0 && (
+        <section className="services-preview">
+          <div className="container">
+            <h2 className="section-title">Our Services</h2>
+            
+            <div 
+              className="services-carousel"
+              onMouseEnter={() => handleCarouselHover(true)}
+              onMouseLeave={() => handleCarouselHover(false)}
+            >
+              <Carousel
+                setApi={setCarouselApi}
+                opts={{
+                  align: 'start',
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {validServices.map((service) => (
+                    <CarouselItem key={service.id}>
+                      <div className="p-1">
+                        <Card className="service-card-carousel">
+                          <div className="service-image-container">
+                            <img
+                              src={service.image}
+                              alt={service.name}
+                              className="service-image"
+                              onClick={() => handleViewMore(service)}
+                            />
+                            <div className="service-overlay">
+                              <Button
+                                variant="secondary"
+                                className="view-more-btn"
+                                onClick={() => handleViewMore(service)}
+                              >
+                                View More
+                              </Button>
+                            </div>
+                          </div>
+                          <CardContent className="p-6">
+                            <h3 className="text-xl font-semibold mb-2">{service.name}</h3>
+                            <p className="text-gray-600 mb-4">{service.description}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-2xl font-bold text-blue-600">
+                                ₱{service.price}
+                              </span>
+                              <Button
+                                onClick={() => {
+                                  pauseAutoAdvance()
+                                  window.location.href = '/booking'
+                                }}
+                                onMouseEnter={() => handleCarouselHover(true)}
+                              >
+                                Book Service
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious 
+                  className="carousel-nav-btn"
+                />
+                <CarouselNext 
+                  className="carousel-nav-btn"
+                />
+              </Carousel>
             </div>
-            <div className="feature-card">
-              <div className="feature-icon">🛡️</div>
-              <h3>Safe & Effective</h3>
-              <p>Eco-friendly solutions for your family</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">⏰</div>
-              <h3>24/7 Service</h3>
-              <p>Available when you need us most</p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-icon">💰</div>
-              <h3>Affordable Prices</h3>
-              <p>Competitive rates for quality service</p>
+
+            {/* Pagination */}
+            {validServices.length > 1 && (
+              <Pagination className="mt-8">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={handlePrevious}
+                      className="cursor-pointer pagination-icon-only"
+                    >
+                      <span className="sr-only">Previous</span>
+                    </PaginationPrevious>
+                  </PaginationItem>
+                  
+                  {validServices.map((_, index) => {
+                    const page = index + 1
+                    const isActive = current === index
+                    
+                    return (
+                      <PaginationItem key={`page-${page}`}>
+                        <PaginationLink
+                          href="#"
+                          isActive={isActive}
+                          onClick={(e) => {
+                            e.preventDefault()
+                            handlePageChange(page)
+                          }}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  })}
+                  
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={handleNext}
+                      className="cursor-pointer pagination-icon-only"
+                    >
+                      <span className="sr-only">Next</span>
+                    </PaginationNext>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Final CTA Section */}
+      <section className="final-cta-section">
+        <div className="container">
+          <div className="final-cta-content">
+            <h2 className="final-cta-title">Protect Your Home & Business Today</h2>
+            <p className="final-cta-subtitle">
+              Get professional pest control services you can trust. Contact us now for a free inspection!
+            </p>
+            <div className="final-cta-buttons">
+              <a href="tel:09265557359" className="btn-cta-primary-link">
+                <Phone size={20} />
+                Call Now
+              </a>
+              <Button asChild size="lg" className="btn-cta-secondary">
+                <Link to="/booking">Request Free Inspection</Link>
+              </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="cta-section">
-        <div className="container">
-          <div className="cta-card">
-            <h2>Ready to Get Started?</h2>
-            <p>Book your FREE inspection today and enjoy a pest-free environment</p>
-            <div className="cta-buttons">
-              <Link to="/booking" className="btn-primary">
-                Book Free Inspection
-              </Link>
-              <Link to="/contact" className="btn-outline">
-                Contact Us
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Modal for View More */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          {selectedService && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{selectedService.name}</DialogTitle>
+                <DialogDescription>{selectedService.description}</DialogDescription>
+              </DialogHeader>
+              <div className="mt-4">
+                <img
+                  src={selectedService.image}
+                  alt={selectedService.name}
+                  className="w-full h-auto rounded-lg mb-4"
+                />
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold mb-2">Details</h4>
+                    <p className="text-gray-600">{selectedService.details}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Coverage</h4>
+                    <p className="text-gray-600">{selectedService.coverage}</p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2">Features</h4>
+                    <ul className="list-disc list-inside space-y-1 text-gray-600">
+                      {selectedService.features.map((feature, index) => (
+                        <li key={index}>{feature}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="flex items-center justify-between pt-4 border-t">
+                    <span className="text-2xl font-bold text-blue-600">
+                      ₱{selectedService.price}
+                    </span>
+                    <Button
+                      onClick={() => {
+                        setIsModalOpen(false)
+                        window.location.href = '/booking'
+                      }}
+                    >
+                      Book Service
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

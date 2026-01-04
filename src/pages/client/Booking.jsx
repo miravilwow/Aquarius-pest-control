@@ -217,7 +217,7 @@ function Booking() {
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select a service" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent side="bottom" position="popper">
                         {services.map(service => (
                           <SelectItem key={service.id} value={service.id.toString()}>
                             {service.name} - ₱{service.price}
@@ -258,7 +258,7 @@ function Booking() {
                       <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select time" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent side="bottom" position="popper">
                         <SelectItem value="09:00">9:00 AM</SelectItem>
                         <SelectItem value="10:00">10:00 AM</SelectItem>
                         <SelectItem value="11:00">11:00 AM</SelectItem>
