@@ -245,7 +245,7 @@ function Home() {
     if (isHovered) {
       pauseAutoAdvance()
     } else {
-      resumeAutoAdvance()
+      resumeAutoAdvance
     }
   }
 
@@ -258,8 +258,10 @@ function Home() {
             <div className="hero-badge">
               <span>FREE INSPECTION</span>
             </div>
-            <h1 className="scroll-m-20 text-center text-4xl font-extrabold tracking-tight text-balance hero-title-custom">
-              Your Trusted Partner in Eliminating Pests and Protecting Your Property
+            <h1 className="scroll-m-20 text-center text-7xl font-extrabold tracking-tight text-balance hero-title-custom">
+              <span className="hero-title-line">YOUR TRUSTED</span>
+              <span className="hero-title-line">PEST ELIMINATION</span>
+              <span className="hero-title-line">CONTROLLING</span>
             </h1>
             <div className="hero-pest-animation">
               <span className="pest-word" key={currentPestIndex}>{pests[currentPestIndex]}</span>
