@@ -75,22 +75,12 @@
 .hero-title-line {
   display: block;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  /* GSAP will control opacity and transform */
   opacity: 0;
-  animation: slideUpFromBottom 1s ease-out forwards;
+  /* Removed CSS animation - GSAP handles it now */
 }
 
-.hero-title-line:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.hero-title-line:nth-child(2) {
-  animation-delay: 0.3s;
-}
-
-.hero-title-line:nth-child(3) {
-  animation-delay: 0.6s;
-}
-
+/* Keep keyframes for fallback if GSAP fails */
 @keyframes slideUpFromBottom {
   0% {
     opacity: 0;
@@ -114,16 +104,20 @@
   margin: 2rem 0 2.5rem 0;
   min-height: 40px;
   font-size: 2.5rem;
+  text-transform: uppercase;
 }
 
 .pest-word {
   display: inline-block;
   font-weight: 800;
   color: rgba(202, 31, 31, 0.95);
-  animation: fadeInSlide 3.5s ease-in-out;
+  /* GSAP will control opacity, transform, and scale */
+  opacity: 0;
+  /* Removed CSS animation - GSAP handles it now */
   font-family: 'Poppins', Arial, sans-serif;
 }
 
+/* Keep keyframes for fallback if GSAP fails */
 @keyframes fadeInSlide {
   0% {
     opacity: 0;

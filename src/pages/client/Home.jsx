@@ -35,15 +35,169 @@ function Home() {
   const autoAdvanceIntervalRef = useRef(null)
   const isPausedRef = useRef(false)
   const [currentPestIndex, setCurrentPestIndex] = useState(0)
+  
+  // Refs for GSAP animations
+  const heroSectionRef = useRef(null)
+  const heroBadgeRef = useRef(null)
+  const heroTitleLinesRef = useRef([])
+  const pestWordRef = useRef(null)
+  const ctaButtonRef = useRef(null)
 
   // Pest list for rotating animation
   const pests = ['Rodents', 'Ants', 'Mosquitoes', 'Cockroaches', 'Termites', 'Bedbugs', 'Spiders', 'Flies']
 
-  // Rotate pest text every 2 seconds
+  // GSAP Hero Section Animations
+  useEffect(() => {
+    let gsap, pestAnimation
+    
+    // Dynamically import GSAP
+    import('gsap').then((gsapModule) => {
+      gsap = gsapModule.gsap || gsapModule.default
+      
+      if (!gsap || !heroSectionRef.current) return
+
+      // Set initial states
+      gsap.set([heroBadgeRef.current, ...heroTitleLinesRef.current, pestWordRef.current, ctaButtonRef.current], {
+        opacity: 0,
+        y: 30
+      })
+
+      // Create master timeline
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+      // Animate hero badge
+      if (heroBadgeRef.current) {
+        tl.to(heroBadgeRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8
+        })
+      }
+
+      // Animate hero title lines with stagger
+      if (heroTitleLinesRef.current.length > 0) {
+        tl.to(heroTitleLinesRef.current, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.2
+        }, '-=0.4')
+      }
+
+      // Animate pest word
+      if (pestWordRef.current) {
+        tl.to(pestWordRef.current, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6
+        }, '-=0.2')
+      }
+
+      // Animate CTA button
+      if (ctaButtonRef.current) {
+        tl.to(ctaButtonRef.current, {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6
+        }, '-=0.2')
+      }
+
+      // Animate pest word rotation with GSAP
+      pestAnimation = setInterval(() => {
+        if (pestWordRef.current) {
+          gsap.to(pestWordRef.current, {
+            opacity: 0,
+            y: -20,
+            scale: 0.8,
+            duration: 0.6,
+            onComplete: () => {
+              // Update state - React will update the text
+              setCurrentPestIndex((prevIndex) => (prevIndex + 1) % pests.length)
+            }
+          })
+        }
+      }, 3000) // Change every 3 seconds
+
+      return () => {
+        if (pestAnimation) clearInterval(pestAnimation)
+      }
+    }).catch((error) => {
+      console.warn('GSAP not available, using fallback animations')
+    })
+
+    return () => {
+      if (pestAnimation) clearInterval(pestAnimation)
+    }
+  }, [pests.length])
+
+  // Animate pest word when it changes (React state update)
+  useEffect(() => {
+    let gsap
+    import('gsap').then((gsapModule) => {
+      gsap = gsapModule.gsap || gsapModule.default
+      
+      if (!gsap || !pestWordRef.current) return
+
+      // Animate new word in
+      gsap.fromTo(pestWordRef.current, 
+        { opacity: 0, y: 20, scale: 0.8 },
+        { 
+          opacity: 1, 
+          y: 0, 
+          scale: 1, 
+          duration: 0.8,
+          ease: 'back.out(1.7)'
+        }
+      )
+    }).catch(() => {})
+  }, [currentPestIndex])
+
+  // Add GSAP hover effect to CTA button
+  useEffect(() => {
+    let gsap
+    const button = ctaButtonRef.current?.querySelector('a') || ctaButtonRef.current
+    
+    if (!button) return
+
+    import('gsap').then((gsapModule) => {
+      gsap = gsapModule.gsap || gsapModule.default
+      if (!gsap) return
+
+      const handleMouseEnter = () => {
+        gsap.to(button, {
+          scale: 1.05,
+          y: -3,
+          duration: 0.3,
+          ease: 'power2.out'
+        })
+      }
+
+      const handleMouseLeave = () => {
+        gsap.to(button, {
+          scale: 1,
+          y: 0,
+          duration: 0.3,
+          ease: 'power2.out'
+        })
+      }
+
+      button.addEventListener('mouseenter', handleMouseEnter)
+      button.addEventListener('mouseleave', handleMouseLeave)
+
+      return () => {
+        button.removeEventListener('mouseenter', handleMouseEnter)
+        button.removeEventListener('mouseleave', handleMouseLeave)
+      }
+    }).catch(() => {})
+  }, [])
+
+  // Fallback: Rotate pest text every 3 seconds (if GSAP fails)
   useEffect(() => {
     const pestInterval = setInterval(() => {
       setCurrentPestIndex((prevIndex) => (prevIndex + 1) % pests.length)
-    }, 2000)
+    }, 3000)
 
     return () => clearInterval(pestInterval)
   }, [pests.length])
@@ -252,21 +406,42 @@ function Home() {
   return (
     <div className="home">
       {/* Hero Section */}
-      <section className="hero-modern">
+      <section className="hero-modern" ref={heroSectionRef}>
         <div className="container">
           <div className="hero-content">
-            <div className="hero-badge">
+            <div className="hero-badge" ref={heroBadgeRef}>
               <span>FREE INSPECTION</span>
             </div>
             <h1 className="scroll-m-20 text-center text-7xl font-extrabold tracking-tight text-balance hero-title-custom">
-              <span className="hero-title-line">YOUR TRUSTED</span>
-              <span className="hero-title-line">PEST ELIMINATION</span>
-              <span className="hero-title-line">CONTROLLING</span>
+              <span 
+                className="hero-title-line" 
+                ref={(el) => { if (el) heroTitleLinesRef.current[0] = el }}
+              >
+                YOUR TRUSTED
+              </span>
+              <span 
+                className="hero-title-line" 
+                ref={(el) => { if (el) heroTitleLinesRef.current[1] = el }}
+              >
+                PEST ELIMINATION
+              </span>
+              <span 
+                className="hero-title-line" 
+                ref={(el) => { if (el) heroTitleLinesRef.current[2] = el }}
+              >
+                CONTROLLING
+              </span>
             </h1>
             <div className="hero-pest-animation">
-              <span className="pest-word" key={currentPestIndex}>{pests[currentPestIndex]}</span>
+              <span 
+                className="pest-word" 
+                ref={pestWordRef}
+                key={currentPestIndex}
+              >
+                {pests[currentPestIndex]}
+              </span>
             </div>
-            <div className="hero-cta-buttons">
+            <div className="hero-cta-buttons" ref={ctaButtonRef}>
               <Button asChild size="lg" className="btn-primary-hero">
                 <Link to="/booking">Book Free Inspection</Link>
               </Button>

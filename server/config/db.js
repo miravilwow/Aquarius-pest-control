@@ -1,8 +1,14 @@
 import pkg from 'pg'
 const { Pool } = pkg
 import dotenv from 'dotenv'
+import { fileURLToPath } from 'url'
+import { dirname, join } from 'path'
 
-dotenv.config()
+// Get current directory and load .env from server directory
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const serverDir = dirname(__dirname) // Go up one level from config/ to server/
+dotenv.config({ path: join(serverDir, '.env') })
 
 export const pool = new Pool({
   user: process.env.DB_USER || 'postgres',
