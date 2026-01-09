@@ -42,6 +42,15 @@ function Home() {
   const heroTitleLinesRef = useRef([])
   const pestWordRef = useRef(null)
   const ctaButtonRef = useRef(null)
+  const whyChooseUsSectionRef = useRef(null)
+  const whyChooseUsImageRef = useRef(null)
+  const whyChooseUsCardsRef = useRef([])
+  const treatmentsSectionRef = useRef(null)
+  const treatmentCardsRef = useRef([])
+  const benefitsSectionRef = useRef(null)
+  const benefitCardsRef = useRef([])
+  const servicesSectionRef = useRef(null)
+  const finalCtaSectionRef = useRef(null)
 
   // Pest list for rotating animation
   const pests = ['Rodents', 'Ants', 'Mosquitoes', 'Cockroaches', 'Termites', 'Bedbugs', 'Spiders', 'Flies']
@@ -191,6 +200,327 @@ function Home() {
         button.removeEventListener('mouseleave', handleMouseLeave)
       }
     }).catch(() => {})
+  }, [])
+
+  // GSAP Why Choose Us Section Animations
+  useEffect(() => {
+    let gsap, ScrollTrigger, cleanupFunctions = []
+    
+    Promise.all([
+      import('gsap'),
+      import('gsap/ScrollTrigger').catch(() => null)
+    ]).then(([gsapModule, scrollTriggerModule]) => {
+      gsap = gsapModule.gsap || gsapModule.default
+      ScrollTrigger = scrollTriggerModule?.ScrollTrigger || scrollTriggerModule?.default
+      
+      if (!gsap || !whyChooseUsSectionRef.current) return
+
+      // Register ScrollTrigger plugin if available
+      if (ScrollTrigger && gsap.registerPlugin) {
+        gsap.registerPlugin(ScrollTrigger)
+      }
+
+      // Set initial states
+      if (whyChooseUsImageRef.current) {
+        gsap.set(whyChooseUsImageRef.current, {
+          opacity: 0,
+          x: -50,
+          scale: 0.9
+        })
+      }
+
+      whyChooseUsCardsRef.current.forEach((card) => {
+        if (card) {
+          gsap.set(card, {
+            opacity: 0,
+            y: 30
+          })
+        }
+      })
+
+      // Create scroll-triggered animation (with fallback if ScrollTrigger not available)
+      const animationConfig = ScrollTrigger ? {
+        scrollTrigger: {
+          trigger: whyChooseUsSectionRef.current,
+          start: 'top 75%',
+          end: 'bottom 25%',
+          toggleActions: 'play none none reverse'
+        },
+        defaults: { ease: 'power3.out' }
+      } : {
+        defaults: { ease: 'power3.out' }
+      }
+
+      const tl = gsap.timeline(animationConfig)
+
+      // Animate image
+      if (whyChooseUsImageRef.current) {
+        tl.to(whyChooseUsImageRef.current, {
+          opacity: 1,
+          x: 0,
+          scale: 1,
+          duration: 0.8
+        })
+      }
+
+      // Animate cards with stagger
+      const validCards = whyChooseUsCardsRef.current.filter(card => card)
+      if (validCards.length > 0) {
+        tl.to(validCards, {
+          opacity: 1,
+          y: 0,
+          duration: 0.6,
+          stagger: 0.15
+        }, '-=0.4')
+      }
+
+      // Add hover interactions to cards
+      validCards.forEach((card) => {
+        if (!card) return
+
+        const handleMouseEnter = () => {
+          gsap.to(card, {
+            scale: 1.05,
+            y: -8,
+            duration: 0.3,
+            ease: 'power2.out'
+          })
+          
+          // Animate image on card hover
+          if (whyChooseUsImageRef.current) {
+            gsap.to(whyChooseUsImageRef.current, {
+              scale: 1.02,
+              duration: 0.3,
+              ease: 'power2.out'
+            })
+          }
+        }
+
+        const handleMouseLeave = () => {
+          gsap.to(card, {
+            scale: 1,
+            y: 0,
+            duration: 0.3,
+            ease: 'power2.out'
+          })
+          
+          // Reset image
+          if (whyChooseUsImageRef.current) {
+            gsap.to(whyChooseUsImageRef.current, {
+              scale: 1,
+              duration: 0.3,
+              ease: 'power2.out'
+            })
+          }
+        }
+
+        card.addEventListener('mouseenter', handleMouseEnter)
+        card.addEventListener('mouseleave', handleMouseLeave)
+
+        return () => {
+          card.removeEventListener('mouseenter', handleMouseEnter)
+          card.removeEventListener('mouseleave', handleMouseLeave)
+        }
+      })
+
+      // Store cleanup functions
+      cleanupFunctions.push(() => {
+        if (ScrollTrigger && ScrollTrigger.getAll) {
+          ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+        }
+      })
+
+      // Fallback: If ScrollTrigger not available, animate immediately
+      if (!ScrollTrigger) {
+        tl.play()
+      }
+    }).catch((error) => {
+      console.warn('GSAP not available for Why Choose Us section:', error)
+    })
+
+      return () => {
+        cleanupFunctions.forEach(cleanup => cleanup())
+      }
+    }, [])
+
+  // GSAP Scroll Animations for All Sections
+  useEffect(() => {
+    let gsap, ScrollTrigger, cleanupFunctions = []
+    
+    Promise.all([
+      import('gsap'),
+      import('gsap/ScrollTrigger').catch(() => null)
+    ]).then(([gsapModule, scrollTriggerModule]) => {
+      gsap = gsapModule.gsap || gsapModule.default
+      ScrollTrigger = scrollTriggerModule?.ScrollTrigger || scrollTriggerModule?.default
+      
+      if (!gsap) return
+
+      // Register ScrollTrigger plugin if available
+      if (ScrollTrigger && gsap.registerPlugin) {
+        gsap.registerPlugin(ScrollTrigger)
+      }
+
+      // Common animation config
+      const createScrollAnimation = (element, options = {}) => {
+        if (!element) return null
+
+        const {
+          x = 0,
+          y = 50,
+          opacity = 0,
+          scale = 1,
+          duration = 0.8,
+          delay = 0,
+          ease = 'power3.out',
+          start = 'top 80%'
+        } = options
+
+        // Set initial state
+        gsap.set(element, {
+          opacity,
+          x,
+          y,
+          scale
+        })
+
+        // Create animation config
+        const animationConfig = {
+          opacity: 1,
+          x: 0,
+          y: 0,
+          scale: 1,
+          duration,
+          delay,
+          ease
+        }
+
+        // Add ScrollTrigger if available
+        if (ScrollTrigger) {
+          animationConfig.scrollTrigger = {
+            trigger: element,
+            start,
+            toggleActions: 'play none none reverse'
+          }
+        }
+
+        const animation = gsap.to(element, animationConfig)
+
+        // Fallback: if ScrollTrigger not available, animate immediately
+        if (!ScrollTrigger) {
+          animation.play()
+        }
+
+        return animation
+      }
+
+      // Treatments Section Animation
+      if (treatmentsSectionRef.current) {
+        const section = treatmentsSectionRef.current
+        const title = section.querySelector('.section-title')
+        const subtitle = section.querySelector('.section-subtitle')
+        const cards = section.querySelectorAll('.treatment-card')
+
+        if (title) {
+          createScrollAnimation(title, { y: 30, delay: 0.1 })
+        }
+        if (subtitle) {
+          createScrollAnimation(subtitle, { y: 30, delay: 0.2 })
+        }
+        
+        cards.forEach((card, index) => {
+          if (card) {
+            createScrollAnimation(card, {
+              y: 50,
+              x: index % 2 === 0 ? -30 : 30,
+              delay: 0.3 + (index * 0.1),
+              duration: 0.7
+            })
+          }
+        })
+      }
+
+      // Benefits Section Animation
+      if (benefitsSectionRef.current) {
+        const section = benefitsSectionRef.current
+        const title = section.querySelector('.section-title')
+        const subtitle = section.querySelector('.section-subtitle')
+        const cards = section.querySelectorAll('.benefit-card')
+
+        if (title) {
+          createScrollAnimation(title, { y: 30, delay: 0.1 })
+        }
+        if (subtitle) {
+          createScrollAnimation(subtitle, { y: 30, delay: 0.2 })
+        }
+        
+        cards.forEach((card, index) => {
+          if (card) {
+            createScrollAnimation(card, {
+              y: 40,
+              scale: 0.9,
+              delay: 0.2 + (index * 0.08),
+              duration: 0.6
+            })
+          }
+        })
+      }
+
+      // Services Section Animation
+      if (servicesSectionRef.current) {
+        const section = servicesSectionRef.current
+        const title = section.querySelector('.section-title')
+        const carousel = section.querySelector('.services-carousel')
+
+        if (title) {
+          createScrollAnimation(title, { y: 30, delay: 0.1 })
+        }
+        if (carousel) {
+          createScrollAnimation(carousel, {
+            y: 50,
+            opacity: 0.8,
+            delay: 0.3,
+            duration: 1
+          })
+        }
+      }
+
+      // Final CTA Section Animation
+      if (finalCtaSectionRef.current) {
+        const section = finalCtaSectionRef.current
+        const title = section.querySelector('.final-cta-title')
+        const subtitle = section.querySelector('.final-cta-subtitle')
+        const buttons = section.querySelector('.final-cta-buttons')
+
+        if (title) {
+          createScrollAnimation(title, { y: 30, delay: 0.1 })
+        }
+        if (subtitle) {
+          createScrollAnimation(subtitle, { y: 30, delay: 0.2 })
+        }
+        if (buttons) {
+          createScrollAnimation(buttons, {
+            y: 40,
+            scale: 0.95,
+            delay: 0.3,
+            duration: 0.8
+          })
+        }
+      }
+
+      // Cleanup function
+      cleanupFunctions.push(() => {
+        if (ScrollTrigger && ScrollTrigger.getAll) {
+          ScrollTrigger.getAll().forEach(trigger => trigger.kill())
+        }
+      })
+    }).catch((error) => {
+      console.warn('GSAP scroll animations not available:', error)
+    })
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup())
+    }
   }, [])
 
   // Fallback: Rotate pest text every 3 seconds (if GSAP fails)
@@ -399,7 +729,7 @@ function Home() {
     if (isHovered) {
       pauseAutoAdvance()
     } else {
-      resumeAutoAdvance
+      resumeAutoAdvance()
     }
   }
 
@@ -451,58 +781,88 @@ function Home() {
       </section>
 
       {/* Why Choose Us - Permits & Legitimacy */}
-      <section className="permits-section">
+      <section className="permits-section" ref={whyChooseUsSectionRef}>
         <div className="container">
           <h2 className="section-title">Why Choose Us</h2>
           <p className="section-subtitle">Fully Licensed & Legitimate Operations</p>
-          <div className="permits-grid">
-            <Card className="permit-card">
-              <CardContent className="permit-card-content">
-                <div className="permit-icon">
-                  <FileText size={32} />
-                </div>
-                <h3>With DTI Permit to Operate</h3>
-                <p>Legally registered with the Department of Trade and Industry</p>
-              </CardContent>
-            </Card>
-            <Card className="permit-card">
-              <CardContent className="permit-card-content">
-                <div className="permit-icon">
-                  <FileText size={32} />
-                </div>
-                <h3>With Business Permit</h3>
-                <p>Fully compliant with local business regulations</p>
-              </CardContent>
-            </Card>
-            <Card className="permit-card">
-              <CardContent className="permit-card-content">
-                <div className="permit-icon">
-                  <Shield size={32} />
-                </div>
-                <h3>With Sanitary Permit</h3>
-                <p>Certified safe and sanitary operations</p>
-              </CardContent>
-            </Card>
-            <Card className="permit-card">
-              <CardContent className="permit-card-content">
-                <div className="permit-icon">
-                  <FileText size={32} />
-                </div>
-                <h3>With BIR Registration</h3>
-                <p>Registered with the Bureau of Internal Revenue</p>
-              </CardContent>
-            </Card>
+          <div className="why-choose-us-wrapper">
+            {/* Left Side - Image */}
+            <div className="why-choose-us-image-container">
+              <div className="why-choose-us-image-wrapper" ref={whyChooseUsImageRef}>
+                <img 
+                  src="/image/why-choose-use.jpg" 
+                  alt="Why Choose Us - Professional Pest Control Services" 
+                  className="why-choose-us-image"
+                />
+                <div className="why-choose-us-image-overlay"></div>
+              </div>
+            </div>
+            
+            {/* Right Side - Cards */}
+            <div className="permits-grid">
+              <Card 
+                className="permit-card"
+                ref={(el) => { if (el) whyChooseUsCardsRef.current[0] = el }}
+              >
+                <CardContent className="permit-card-content">
+                  <div className="permit-icon">
+                    <FileText size={32} />
+                  </div>
+                  <h3>With DTI Permit to Operate</h3>
+                  <p>Legally registered with the Department of Trade and Industry</p>
+                </CardContent>
+              </Card>
+              <Card 
+                className="permit-card"
+                ref={(el) => { if (el) whyChooseUsCardsRef.current[1] = el }}
+              >
+                <CardContent className="permit-card-content">
+                  <div className="permit-icon">
+                    <FileText size={32} />
+                  </div>
+                  <h3>With Business Permit</h3>
+                  <p>Fully compliant with local business regulations</p>
+                </CardContent>
+              </Card>
+              <Card 
+                className="permit-card"
+                ref={(el) => { if (el) whyChooseUsCardsRef.current[2] = el }}
+              >
+                <CardContent className="permit-card-content">
+                  <div className="permit-icon">
+                    <Shield size={32} />
+                  </div>
+                  <h3>With Sanitary Permit</h3>
+                  <p>Certified safe and sanitary operations</p>
+                </CardContent>
+              </Card>
+              <Card 
+                className="permit-card"
+                ref={(el) => { if (el) whyChooseUsCardsRef.current[3] = el }}
+              >
+                <CardContent className="permit-card-content">
+                  <div className="permit-icon">
+                    <FileText size={32} />
+                  </div>
+                  <h3>With BIR Registration</h3>
+                  <p>Registered with the Bureau of Internal Revenue</p>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Effective Treatments */}
-      <section className="treatments-section">
+      <section className="treatments-section" ref={treatmentsSectionRef}>
         <div className="container">
           <h2 className="section-title">Effective Treatments</h2>
           <p className="section-subtitle">Professional pest control solutions tailored to your needs</p>
           <div className="treatments-grid">
-            <Card className="treatment-card">
+            <Card 
+              className="treatment-card"
+              ref={(el) => { if (el) treatmentCardsRef.current[0] = el }}
+            >
               <CardContent className="treatment-card-content">
                 <div className="treatment-icon">
                   <Shield size={40} />
@@ -514,7 +874,10 @@ function Home() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="treatment-card">
+            <Card 
+              className="treatment-card"
+              ref={(el) => { if (el) treatmentCardsRef.current[1] = el }}
+            >
               <CardContent className="treatment-card-content">
                 <div className="treatment-icon">
                   <Shield size={40} />
@@ -531,12 +894,15 @@ function Home() {
       </section>
 
       {/* Why Choose Us - Service Benefits */}
-      <section className="benefits-section">
+      <section className="benefits-section" ref={benefitsSectionRef}>
         <div className="container">
           <h2 className="section-title">Why Choose Us</h2>
           <p className="section-subtitle">Your Trusted Partner in Pest Control</p>
           <div className="benefits-grid">
-            <Card className="benefit-card">
+            <Card 
+              className="benefit-card"
+              ref={(el) => { if (el) benefitCardsRef.current[0] = el }}
+            >
               <CardContent className="benefit-card-content">
                 <div className="benefit-icon">
                   <DollarSign size={28} />
@@ -545,7 +911,10 @@ function Home() {
                 <p>Transparent pricing with no surprise fees</p>
               </CardContent>
             </Card>
-            <Card className="benefit-card">
+            <Card 
+              className="benefit-card"
+              ref={(el) => { if (el) benefitCardsRef.current[1] = el }}
+            >
               <CardContent className="benefit-card-content">
                 <div className="benefit-icon">
                   <Award size={28} />
@@ -554,7 +923,10 @@ function Home() {
                 <p>Safe and approved treatment solutions</p>
               </CardContent>
             </Card>
-            <Card className="benefit-card">
+            <Card 
+              className="benefit-card"
+              ref={(el) => { if (el) benefitCardsRef.current[2] = el }}
+            >
               <CardContent className="benefit-card-content">
                 <div className="benefit-icon">
                   <Users size={28} />
@@ -563,7 +935,10 @@ function Home() {
                 <p>Professional team with years of expertise</p>
               </CardContent>
             </Card>
-            <Card className="benefit-card">
+            <Card 
+              className="benefit-card"
+              ref={(el) => { if (el) benefitCardsRef.current[3] = el }}
+            >
               <CardContent className="benefit-card-content">
                 <div className="benefit-icon">
                   <Leaf size={28} />
@@ -572,7 +947,10 @@ function Home() {
                 <p>Eco-conscious pest control methods</p>
               </CardContent>
             </Card>
-            <Card className="benefit-card">
+            <Card 
+              className="benefit-card"
+              ref={(el) => { if (el) benefitCardsRef.current[4] = el }}
+            >
               <CardContent className="benefit-card-content">
                 <div className="benefit-icon">
                   <DollarSign size={28} />
@@ -581,7 +959,10 @@ function Home() {
                 <p>Affordable rates without compromising quality</p>
               </CardContent>
             </Card>
-            <Card className="benefit-card">
+            <Card 
+              className="benefit-card"
+              ref={(el) => { if (el) benefitCardsRef.current[5] = el }}
+            >
               <CardContent className="benefit-card-content">
                 <div className="benefit-icon">
                   <Clock size={28} />
@@ -590,7 +971,10 @@ function Home() {
                 <p>On-time service delivery guaranteed</p>
               </CardContent>
             </Card>
-            <Card className="benefit-card">
+            <Card 
+              className="benefit-card"
+              ref={(el) => { if (el) benefitCardsRef.current[6] = el }}
+            >
               <CardContent className="benefit-card-content">
                 <div className="benefit-icon">
                   <Heart size={28} />
@@ -605,7 +989,7 @@ function Home() {
 
       {/* Our Services Section with Carousel */}
       {validServices.length > 0 && (
-        <section className="services-preview">
+        <section className="services-preview" ref={servicesSectionRef}>
           <div className="container">
             <h2 className="section-title">Our Services</h2>
             
@@ -728,7 +1112,7 @@ function Home() {
       )}
 
       {/* Final CTA Section */}
-      <section className="final-cta-section">
+      <section className="final-cta-section" ref={finalCtaSectionRef}>
         <div className="container">
           <div className="final-cta-content">
             <h2 className="final-cta-title">Protect Your Home & Business Today</h2>

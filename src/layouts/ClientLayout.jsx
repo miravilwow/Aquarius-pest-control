@@ -35,7 +35,7 @@ function ClientLayout() {
                 <img src="/image/logo.jpg" alt="Aquarius Pest Control Services" className="logo-img" />
               </div>
               <div className="logo-text">
-                <h2>Aquarius Pest Control Services</h2>
+                <h2>AQUARIUS PEST CONTROL SERVICES</h2>
               </div>
             </Link>
           </div>
@@ -57,7 +57,7 @@ function ClientLayout() {
                   </li>
                 )
               })}
-              <li>
+              <li className="desktop-cta-item">
                 <Link 
                   to="/booking" 
                   className="cta-button-modern"
@@ -67,14 +67,14 @@ function ClientLayout() {
                   <span>Book Now</span>
                 </Link>
               </li>
-              <li>
+              <li className="mobile-cta-item">
                 <Link 
-                  to="/admin/login" 
-                  className="admin-link-modern"
+                  to="/booking" 
+                  className="cta-button-modern mobile-cta"
                   onClick={() => setMenuOpen(false)}
                 >
-                  <Shield size={18} />
-                  <span>Admin</span>
+                  <Calendar size={18} />
+                  <span>Book Now</span>
                 </Link>
               </li>
             </ul>
