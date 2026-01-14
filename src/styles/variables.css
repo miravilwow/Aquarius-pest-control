@@ -1,26 +1,45 @@
 /* CSS Variables - Design Tokens */
 :root {
-  /* Colors */
-  --primary-color: #3498db;
-  --primary-dark: #2980b9;
-  --secondary-color: #2c3e50;
-  --secondary-dark: #34495e;
+  /* 60-30-10 Color Palette */
+  /* 60% - Dominant Neutral Colors */
+  --color-neutral-60: #ffffff;
+  --color-neutral-60-light: #f8fafc;
+  --color-neutral-60-medium: #f1f5f9;
+  --color-neutral-60-dark: #e2e8f0;
+  
+  /* 30% - Secondary Color (Blue) */
+  --color-secondary-30: #3b82f6;
+  --color-secondary-30-light: #60a5fa;
+  --color-secondary-30-dark: #2563eb;
+  --color-secondary-30-darker: #1e40af;
+  
+  /* 10% - Accent Color (Red/Orange) */
+  --color-accent-10: #e74c3c;
+  --color-accent-10-light: #ef4444;
+  --color-accent-10-dark: #c0392b;
+  --color-accent-10-darker: #991b1b;
+  
+  /* Legacy Color Support */
+  --primary-color: #3b82f6;
+  --primary-dark: #2563eb;
+  --secondary-color: #1e293b;
+  --secondary-dark: #0f172a;
   --success-color: #27ae60;
   --success-dark: #229954;
   --danger-color: #e74c3c;
   --danger-dark: #c0392b;
   --warning-color: #f39c12;
-  --info-color: #3498db;
+  --info-color: #3b82f6;
   
   /* Text Colors */
-  --text-primary: #2c3e50;
-  --text-secondary: #7f8c8d;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
   --text-light: #ffffff;
   
   /* Background Colors */
   --bg-primary: #ffffff;
-  --bg-secondary: #f8f9fa;
-  --bg-dark: #2c3e50;
+  --bg-secondary: #f8fafc;
+  --bg-dark: #1e293b;
   
   /* Spacing */
   --spacing-xs: 0.25rem;

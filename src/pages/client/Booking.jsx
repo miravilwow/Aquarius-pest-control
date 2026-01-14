@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import axios from 'axios'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,6 +12,7 @@ import { Calendar, Clock, User, Mail, Phone, MapPin, MessageSquare, CheckCircle2
 import './Booking.css'
 
 function Booking() {
+  const location = useLocation()
   const [services, setServices] = useState([])
   const [formData, setFormData] = useState({
     name: '',
@@ -29,6 +31,42 @@ function Booking() {
   useEffect(() => {
     fetchServices()
   }, [])
+
+  useEffect(() => {
+    // Handle selected pest from navigation after services are loaded
+    if (location.state?.selectedPest && services.length > 0) {
+      const selectedPest = location.state.selectedPest
+      // Map pest types to service names
+      const pestToServiceMap = {
+        'Cockroach': 'Cockroach Control',
+        'Ticks and Flea': 'General Pest Control',
+        'Dry Wood Termites': 'Termite Control',
+        'Bedbugs': 'Bedbug Treatment',
+        'Mosquitoes': 'Mosquito Control',
+        'Bukbok': 'General Pest Control',
+        'Ants': 'Ant Control'
+      }
+      
+      const serviceName = pestToServiceMap[selectedPest] || 'General Pest Control'
+      
+      // Set message with pest type
+      setFormData(prev => ({
+        ...prev,
+        message: `I need pest control service for: ${selectedPest}`
+      }))
+      
+      // Find and select matching service
+      const matchingService = services.find(s => 
+        s.name.toLowerCase().includes(serviceName.toLowerCase().split(' ')[0])
+      )
+      if (matchingService) {
+        setFormData(prev => ({
+          ...prev,
+          service_id: matchingService.id.toString()
+        }))
+      }
+    }
+  }, [location.state, services])
 
   const getDefaultServices = () => [
     { id: 1, name: 'Termite Control', price: 300 },

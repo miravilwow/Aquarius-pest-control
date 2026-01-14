@@ -59,6 +59,7 @@
   max-width: 600px;
   margin: 0;
   text-align: left;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -66,12 +67,15 @@
     max-width: 100%;
     text-align: center;
     padding: 0 1rem;
+    width: 100%;
   }
 }
 
 @media (max-width: 480px) {
   .hero-content {
-    padding: 0 0.75rem;
+    padding: 0 1rem;
+    width: 100%;
+    box-sizing: border-box;
   }
 }
 
@@ -99,6 +103,9 @@
   gap: 0.5rem;
   font-size: 5rem;
   line-height: 1.1;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
@@ -106,11 +113,39 @@
     font-size: 2.5rem;
     gap: 0.25rem;
   }
+
+  .hero-title-line {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
 }
 
 @media (max-width: 480px) {
   .hero-title-custom {
-    font-size: 2rem;
+    font-size: 1.75rem;
+    gap: 0.2rem;
+  }
+
+  .hero-title-line {
+    font-size: 1.75rem;
+    line-height: 1.15;
+    word-break: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 375px) {
+  .hero-title-custom {
+    font-size: 1.5rem;
+    gap: 0.15rem;
+  }
+
+  .hero-title-line {
+    font-size: 1.5rem;
+    line-height: 1.1;
   }
 }
 
@@ -120,6 +155,9 @@
   /* GSAP will control opacity and transform */
   opacity: 0;
   /* Removed CSS animation - GSAP handles it now */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 /* Keep keyframes for fallback if GSAP fails */
@@ -168,7 +206,7 @@
 .pest-word {
   display: inline-block;
   font-weight: 800;
-  color: rgba(202, 31, 31, 0.95);
+  color: var(--color-accent-10);
   /* GSAP will control opacity, transform, and scale */
   opacity: 0;
   /* Removed CSS animation - GSAP handles it now */
@@ -199,7 +237,7 @@
 }
 
 .btn-primary-hero {
-  background: #e74c3c;
+  background: var(--color-accent-10);
   color: white;
   padding: 1.25rem 2.5rem;
   font-size: 1.125rem;
@@ -211,7 +249,7 @@
 }
 
 .btn-primary-hero:hover {
-  background: #c0392b;
+  background: var(--color-accent-10-dark);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(231, 76, 60, 0.5);
 }
@@ -222,7 +260,7 @@
   text-align: center;
   font-size: 2.75rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   line-height: 1.2;
   will-change: transform, opacity;
@@ -231,7 +269,7 @@
 .section-subtitle {
   text-align: center;
   font-size: 1.25rem;
-  color: #64748b;
+  color: var(--text-secondary);
   margin-bottom: 3rem;
   max-width: 700px;
   margin-left: auto;
@@ -242,7 +280,7 @@
 /* Permits Section */
 .permits-section {
   padding: 6rem 0;
-  background: #f8fafc;
+  background: var(--color-neutral-60-light);
 }
 
 .why-choose-us-wrapper {
@@ -270,7 +308,7 @@
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  background: #e2e8f0;
+  background: var(--color-neutral-60-dark);
 }
 
 .why-choose-us-image {
@@ -307,7 +345,7 @@
 }
 
 .permit-card {
-  background: white;
+  background: var(--color-neutral-60);
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   transition: all 0.3s ease;
@@ -317,7 +355,7 @@
 .permit-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: #3b82f6;
+  border-color: var(--color-secondary-30);
 }
 
 /* Enhanced hover effect for permit cards (GSAP will handle this, but CSS as fallback) */
@@ -335,7 +373,7 @@
   width: 70px;
   height: 70px;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-secondary-30), var(--color-secondary-30-dark));
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -347,13 +385,13 @@
 .permit-card h3 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 0.75rem;
 }
 
 .permit-card p {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -361,7 +399,7 @@
 /* Treatments Section */
 .treatments-section {
   padding: 6rem 0;
-  background: white;
+  background: var(--color-neutral-60);
 }
 
 .treatments-grid {
@@ -373,18 +411,18 @@
 }
 
 .treatment-card {
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--color-neutral-60-light) 0%, var(--color-neutral-60) 100%);
   border-radius: 16px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
-  border: 2px solid #e2e8f0;
+  border: 2px solid var(--color-neutral-60-dark);
   will-change: transform, opacity;
 }
 
 .treatment-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
-  border-color: #3b82f6;
+  border-color: var(--color-secondary-30);
 }
 
 .treatment-card-content {
@@ -396,7 +434,7 @@
   width: 90px;
   height: 90px;
   margin: 0 auto 2rem;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-secondary-30), var(--color-secondary-30-dark));
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -408,20 +446,20 @@
 .treatment-card h3 {
   font-size: 1.75rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .treatment-method {
   font-size: 1.125rem;
   font-weight: 600;
-  color: #3b82f6;
+  color: var(--color-secondary-30);
   margin-bottom: 1rem;
 }
 
 .treatment-description {
   font-size: 1rem;
-  color: #64748b;
+  color: var(--text-secondary);
   line-height: 1.7;
   margin: 0;
 }
@@ -429,7 +467,7 @@
 /* Benefits Section */
 .benefits-section {
   padding: 6rem 0;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(180deg, var(--color-neutral-60) 0%, var(--color-neutral-60-light) 100%);
 }
 
 .benefits-grid {
@@ -441,7 +479,7 @@
 }
 
 .benefit-card {
-  background: white;
+  background: var(--color-neutral-60);
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   transition: all 0.3s ease;
@@ -452,7 +490,7 @@
 .benefit-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  border-color: #3b82f6;
+  border-color: var(--color-secondary-30);
 }
 
 .benefit-card-content {
@@ -464,7 +502,7 @@
   width: 60px;
   height: 60px;
   margin: 0 auto 1.25rem;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-secondary-30), var(--color-secondary-30-dark));
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -476,14 +514,14 @@
 .benefit-card h3 {
   font-size: 1.125rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
 
 .benefit-card p {
   font-size: 0.9rem;
-  color: #64748b;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
 }
@@ -491,7 +529,7 @@
 /* Final CTA Section */
 .final-cta-section {
   padding: 6rem 0;
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, var(--color-secondary-30-darker) 0%, var(--color-secondary-30) 100%);
   color: white;
   text-align: center;
   position: relative;
@@ -539,8 +577,8 @@
 }
 
 .btn-cta-primary-link {
-  background: white;
-  color: #3b82f6;
+  background: var(--color-neutral-60);
+  color: var(--color-secondary-30);
   padding: 1.25rem 2.5rem;
   font-size: 1.125rem;
   font-weight: 700;
@@ -557,7 +595,7 @@
 }
 
 .btn-cta-primary-link:hover {
-  background: #f0f0f0;
+  background: var(--color-neutral-60-medium);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
@@ -678,14 +716,14 @@
   top: 50%;
   transform: translateY(-50%);
   z-index: 10;
-  background: white;
-  border: 2px solid #e0e0e0;
+  background: var(--color-neutral-60);
+  border: 2px solid var(--color-neutral-60-dark);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .carousel-nav-btn:hover {
-  background: #f5f5f5;
-  border-color: #3498db;
+  background: var(--color-neutral-60-medium);
+  border-color: var(--color-secondary-30);
 }
 
 /* Pagination Icon Only */
@@ -711,16 +749,18 @@
 }
 
 .service-card {
-  background: #2c3e50;
-  color: white;
+  background: var(--color-neutral-60);
+  color: var(--text-primary);
   padding: 2rem;
   border-radius: 10px;
   text-align: center;
   transition: transform 0.3s;
+  border: 2px solid var(--color-neutral-60-dark);
 }
 
 .service-card:hover {
   transform: translateY(-5px);
+  border-color: var(--color-secondary-30);
 }
 
 .service-card h3 {
@@ -730,7 +770,7 @@
 /* Services We Offer Section - Modern Redesign */
 .services-offer-modern {
   padding: 6rem 0;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(180deg, var(--color-neutral-60) 0%, var(--color-neutral-60-light) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -756,7 +796,7 @@
 .services-offer-badge {
   display: inline-block;
   padding: 0.5rem 1.25rem;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-secondary-30), var(--color-secondary-30-dark));
   color: white;
   border-radius: 50px;
   font-size: 0.875rem;
@@ -768,7 +808,7 @@
 .services-offer-title {
   font-size: 3rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 1.5rem;
   line-height: 1.2;
 }
@@ -776,7 +816,7 @@
 .services-offer-description {
   font-size: 1.125rem;
   line-height: 1.8;
-  color: #64748b;
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -790,8 +830,8 @@
 .service-card-modern {
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid #e2e8f0;
-  background: white;
+  border: 2px solid var(--color-neutral-60-dark);
+  background: var(--color-neutral-60);
   overflow: hidden;
   position: relative;
 }
@@ -803,7 +843,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, var(--color-secondary-30), var(--color-accent-10));
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -816,7 +856,7 @@
 .service-card-modern:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-  border-color: #3b82f6;
+  border-color: var(--color-secondary-30);
 }
 
 .service-card-header {
@@ -852,13 +892,13 @@
 .service-card-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 0.75rem;
 }
 
 .service-card-description {
   font-size: 0.95rem;
-  color: #64748b;
+  color: var(--text-secondary);
   line-height: 1.6;
 }
 
@@ -884,14 +924,14 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: #3b82f6;
+  color: var(--color-secondary-30);
   font-weight: bold;
   font-size: 1rem;
 }
 
 .service-card-footer {
   padding-top: 1.5rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-neutral-60-dark);
   margin-top: 1rem;
 }
 
@@ -904,7 +944,7 @@
   padding: 1rem 2.5rem;
   font-size: 1.125rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  background: linear-gradient(135deg, var(--color-secondary-30), var(--color-secondary-30-dark));
   color: white;
   border: none;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
@@ -914,13 +954,13 @@
 .cta-button-modern:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background: linear-gradient(135deg, var(--color-secondary-30-dark), var(--color-secondary-30-darker));
 }
 
 .btn-secondary {
   display: block;
   text-align: center;
-  background: #3498db;
+  background: var(--color-secondary-30);
   color: white;
   padding: 1rem 2rem;
   text-decoration: none;
@@ -932,7 +972,7 @@
 }
 
 .btn-secondary:hover {
-  background: #2980b9;
+  background: var(--color-secondary-30-dark);
 }
 
 /* Responsive Styles */
@@ -967,10 +1007,15 @@
   .hero-content {
     max-width: 100%;
     text-align: center;
+    padding: 0 1rem;
   }
 
   .hero-title {
     font-size: 2.5rem;
+  }
+
+  .hero-title-custom {
+    text-align: center !important;
   }
 
   .hero-tagline {
@@ -1104,10 +1149,15 @@
   .hero-content {
     max-width: 100%;
     text-align: center;
+    padding: 0 1rem;
   }
 
   .hero-title {
     font-size: 2rem;
+  }
+
+  .hero-title-custom {
+    text-align: center !important;
   }
 
   .hero-tagline {

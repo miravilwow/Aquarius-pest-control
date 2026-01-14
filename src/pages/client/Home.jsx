@@ -33,7 +33,10 @@ function Home() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [selectedService, setSelectedService] = useState(null)
   const autoAdvanceIntervalRef = useRef(null)
+  const resumeTimeoutRef = useRef(null)
   const isPausedRef = useRef(false)
+  const pestAnimationRef = useRef(null)
+  const gsapLoadedRef = useRef(false)
   const [currentPestIndex, setCurrentPestIndex] = useState(0)
   
   // Refs for GSAP animations
@@ -57,13 +60,18 @@ function Home() {
 
   // GSAP Hero Section Animations
   useEffect(() => {
-    let gsap, pestAnimation
+    let gsap
     
     // Dynamically import GSAP
     import('gsap').then((gsapModule) => {
       gsap = gsapModule.gsap || gsapModule.default
       
-      if (!gsap || !heroSectionRef.current) return
+      if (!gsap || !heroSectionRef.current) {
+        gsapLoadedRef.current = false
+        return
+      }
+      
+      gsapLoadedRef.current = true
 
       // Set initial states
       gsap.set([heroBadgeRef.current, ...heroTitleLinesRef.current, pestWordRef.current, ctaButtonRef.current], {
@@ -114,7 +122,7 @@ function Home() {
       }
 
       // Animate pest word rotation with GSAP
-      pestAnimation = setInterval(() => {
+      pestAnimationRef.current = setInterval(() => {
         if (pestWordRef.current) {
           gsap.to(pestWordRef.current, {
             opacity: 0,
@@ -128,16 +136,15 @@ function Home() {
           })
         }
       }, 3000) // Change every 3 seconds
-
-      return () => {
-        if (pestAnimation) clearInterval(pestAnimation)
-      }
     }).catch((error) => {
       console.warn('GSAP not available, using fallback animations')
     })
 
     return () => {
-      if (pestAnimation) clearInterval(pestAnimation)
+      if (pestAnimationRef.current) {
+        clearInterval(pestAnimationRef.current)
+        pestAnimationRef.current = null
+      }
     }
   }, [pests.length])
 
@@ -523,13 +530,21 @@ function Home() {
     }
   }, [])
 
-  // Fallback: Rotate pest text every 3 seconds (if GSAP fails)
+  // Fallback: Rotate pest text every 3 seconds (only if GSAP interval is not running)
   useEffect(() => {
-    const pestInterval = setInterval(() => {
-      setCurrentPestIndex((prevIndex) => (prevIndex + 1) % pests.length)
-    }, 3000)
+    // Wait a bit to see if GSAP interval gets set up
+    const checkGsapTimeout = setTimeout(() => {
+      // Only set up fallback if GSAP interval wasn't created
+      if (!pestAnimationRef.current) {
+        pestAnimationRef.current = setInterval(() => {
+          setCurrentPestIndex((prevIndex) => (prevIndex + 1) % pests.length)
+        }, 3000)
+      }
+    }, 1500) // Give GSAP time to load and set up interval
 
-    return () => clearInterval(pestInterval)
+    return () => {
+      clearTimeout(checkGsapTimeout)
+    }
   }, [pests.length])
 
   // Services data
@@ -638,9 +653,15 @@ function Home() {
 
     setCurrent(carouselApi.selectedScrollSnap())
 
-    carouselApi.on('select', () => {
+    const handleSelect = () => {
       setCurrent(carouselApi.selectedScrollSnap())
-    })
+    }
+
+    carouselApi.on('select', handleSelect)
+
+    return () => {
+      carouselApi.off('select', handleSelect)
+    }
   }, [carouselApi])
 
   // Auto-advance carousel
@@ -669,12 +690,19 @@ function Home() {
   }, [])
 
   const resumeAutoAdvance = useCallback(() => {
+    // Clear any existing resume timeout
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current)
+      resumeTimeoutRef.current = null
+    }
+    
     isPausedRef.current = false
     // Resume after 3 seconds of idle
-    setTimeout(() => {
+    resumeTimeoutRef.current = setTimeout(() => {
       if (!isPausedRef.current) {
         startAutoAdvance()
       }
+      resumeTimeoutRef.current = null
     }, 3000)
   }, [startAutoAdvance])
 
@@ -683,6 +711,11 @@ function Home() {
     return () => {
       if (autoAdvanceIntervalRef.current) {
         clearInterval(autoAdvanceIntervalRef.current)
+        autoAdvanceIntervalRef.current = null
+      }
+      if (resumeTimeoutRef.current) {
+        clearTimeout(resumeTimeoutRef.current)
+        resumeTimeoutRef.current = null
       }
     }
   }, [startAutoAdvance])
