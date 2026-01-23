@@ -1,7 +1,9 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Building2 } from 'lucide-react'
+import { Field } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import './AdminLogin.css'
 
 function AdminLogin() {
@@ -11,6 +13,9 @@ function AdminLogin() {
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
+
+  const BRAND_NAME = 'Aquarius Pest Control Services'
+  const LOGO_SRC = '/image/logo.jpg'
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -32,34 +37,45 @@ function AdminLogin() {
     <div className="admin-login">
       <div className="login-container">
         <div className="login-header">
-          <Building2 className="login-logo-icon" size={64} />
-          <h1>Aquarius Pest Control</h1>
+          <img className="login-logo" src={LOGO_SRC} alt={BRAND_NAME} />
+          <h1>{BRAND_NAME}</h1>
           <p className="login-subtitle">Admin Login</p>
         </div>
         <form onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
-          <div className="form-group">
-            <label>Username</label>
-            <input
+          <Field>
+            <Input
+              id="input-field-username"
               type="text"
+              placeholder="Enter your username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
+              aria-label="Username"
             />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
+          </Field>
+
+          <Field className="mt-4">
+            <Input
+              id="input-field-password"
               type="password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              aria-label="Password"
             />
-          </div>
-          <button type="submit" disabled={loading} className="login-btn">
+          </Field>
+
+          <Button type="submit" disabled={loading} className="login-btn">
             {loading ? 'Logging in...' : 'Login'}
-          </button>
+          </Button>
         </form>
+        <div className="mt-4 text-center">
+          <Button asChild variant="ghost" className="text-sm">
+            <Link to="/">Back to Home</Link>
+          </Button>
+        </div>
       </div>
     </div>
   )

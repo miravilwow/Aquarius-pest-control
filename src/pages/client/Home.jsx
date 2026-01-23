@@ -24,7 +24,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { Check, Phone, FileText, Shield, Award, Users, Leaf, DollarSign, Clock, Heart } from 'lucide-react'
+import { Check, Phone, FileText, Shield, Award, Users, Leaf, DollarSign, Clock, Heart, Building2, Receipt, BadgeCheck, Bug, Zap, CheckCircle2, ArrowRight } from 'lucide-react'
+import Autoplay from 'embla-carousel-autoplay'
 import './Home.css'
 
 function Home() {
@@ -38,6 +39,14 @@ function Home() {
   const pestAnimationRef = useRef(null)
   const gsapLoadedRef = useRef(false)
   const [currentPestIndex, setCurrentPestIndex] = useState(0)
+  const [carouselCurrentIndex, setCarouselCurrentIndex] = useState(0)
+  const [isCarouselTransitioning, setIsCarouselTransitioning] = useState(false)
+  const carouselRef = useRef(null)
+  
+  // Autoplay plugin ref
+  const autoplayPlugin = useRef(
+    Autoplay({ delay: 2000, stopOnInteraction: true, stopOnMouseEnter: true })
+  )
   
   // Refs for GSAP animations
   const heroSectionRef = useRef(null)
@@ -639,108 +648,53 @@ function Home() {
       ],
       coverage: 'Kitchen areas, food storage, and entry points',
       available: false
+    },
+    {
+      id: 6,
+      name: 'General Pest Control',
+      description: 'Comprehensive pest control services for all types of pests',
+      price: 280,
+      image: '/image/image-1.jpg',
+      details: 'Complete pest control solution covering various types of pests with professional treatment methods.',
+      features: [
+        'Comprehensive inspection',
+        'Multi-pest treatment',
+        'Prevention strategies',
+        'Regular monitoring',
+        'Follow-up service',
+        'Guaranteed results'
+      ],
+      coverage: 'All areas of your property',
+      available: true
     }
   ]
 
   // Filter only available services
   const validServices = pestServices.filter(service => service.available)
 
-  // Setup carousel API
+  // Auto-advance carousel - Services page style (1 second interval)
   useEffect(() => {
-    if (!carouselApi) {
-      return
-    }
-
-    setCurrent(carouselApi.selectedScrollSnap())
-
-    const handleSelect = () => {
-      setCurrent(carouselApi.selectedScrollSnap())
-    }
-
-    carouselApi.on('select', handleSelect)
-
-    return () => {
-      carouselApi.off('select', handleSelect)
-    }
-  }, [carouselApi])
-
-  // Auto-advance carousel
-  const startAutoAdvance = useCallback(() => {
-    if (autoAdvanceIntervalRef.current) {
-      clearInterval(autoAdvanceIntervalRef.current)
-    }
-
-    if (!carouselApi || validServices.length <= 1 || isPausedRef.current) {
-      return
-    }
-
-    autoAdvanceIntervalRef.current = setInterval(() => {
-      if (!isPausedRef.current && carouselApi) {
-        carouselApi.scrollNext()
+    if (validServices.length <= 1 || isPausedRef.current) return
+    
+    const interval = setInterval(() => {
+      if (!isPausedRef.current && carouselCurrentIndex < validServices.length - 1 && !isCarouselTransitioning) {
+        handleCarouselNextPage()
+      } else if (carouselCurrentIndex >= validServices.length - 1) {
+        clearInterval(interval)
       }
-    }, 6000) // 6 seconds
-  }, [carouselApi, validServices.length])
+    }, 1000) // 1 second
+    
+    return () => clearInterval(interval)
+  }, [carouselCurrentIndex, validServices.length, isPausedRef, isCarouselTransitioning])
 
   const pauseAutoAdvance = useCallback(() => {
     isPausedRef.current = true
-    if (autoAdvanceIntervalRef.current) {
-      clearInterval(autoAdvanceIntervalRef.current)
-      autoAdvanceIntervalRef.current = null
-    }
   }, [])
 
   const resumeAutoAdvance = useCallback(() => {
-    // Clear any existing resume timeout
-    if (resumeTimeoutRef.current) {
-      clearTimeout(resumeTimeoutRef.current)
-      resumeTimeoutRef.current = null
-    }
-    
     isPausedRef.current = false
-    // Resume after 3 seconds of idle
-    resumeTimeoutRef.current = setTimeout(() => {
-      if (!isPausedRef.current) {
-        startAutoAdvance()
-      }
-      resumeTimeoutRef.current = null
-    }, 3000)
-  }, [startAutoAdvance])
+  }, [])
 
-  useEffect(() => {
-    startAutoAdvance()
-    return () => {
-      if (autoAdvanceIntervalRef.current) {
-        clearInterval(autoAdvanceIntervalRef.current)
-        autoAdvanceIntervalRef.current = null
-      }
-      if (resumeTimeoutRef.current) {
-        clearTimeout(resumeTimeoutRef.current)
-        resumeTimeoutRef.current = null
-      }
-    }
-  }, [startAutoAdvance])
-
-  // Handle next button (for pagination)
-  const handleNext = (e) => {
-    e?.preventDefault()
-    e?.stopPropagation()
-    if (carouselApi) {
-      pauseAutoAdvance()
-      carouselApi.scrollNext()
-      resumeAutoAdvance()
-    }
-  }
-
-  // Handle previous button (for pagination)
-  const handlePrevious = (e) => {
-    e?.preventDefault()
-    e?.stopPropagation()
-    if (carouselApi) {
-      pauseAutoAdvance()
-      carouselApi.scrollPrev()
-      resumeAutoAdvance()
-    }
-  }
 
   // Handle pagination click
   const handlePageChange = (page) => {
@@ -748,6 +702,61 @@ function Home() {
       pauseAutoAdvance()
       carouselApi.scrollTo(page - 1)
       resumeAutoAdvance()
+    }
+  }
+
+  // Carousel handlers - Services page style with smooth transitions (optimized for responsiveness)
+  // Auto-pause when user clicks pagination - stays paused until user interaction
+  const handleCarouselPageChange = (index) => {
+    if (index >= 0 && index < validServices.length && index !== carouselCurrentIndex && !isCarouselTransitioning) {
+      setIsCarouselTransitioning(true)
+      pauseAutoAdvance() // Pause auto-advance when user clicks pagination
+      // Immediate transition start for snappy response
+      requestAnimationFrame(() => {
+        setCarouselCurrentIndex(index)
+        setCurrent(index)
+        // Complete transition faster
+        setTimeout(() => {
+          setIsCarouselTransitioning(false)
+          // Don't resume auto-advance - keep it paused after user interaction
+        }, 250) // Faster transition duration
+      })
+    }
+  }
+
+  const handleCarouselNextPage = () => {
+    if (carouselCurrentIndex < validServices.length - 1 && !isCarouselTransitioning) {
+      setIsCarouselTransitioning(true)
+      pauseAutoAdvance() // Pause auto-advance when user clicks pagination
+      // Immediate transition start for snappy response
+      requestAnimationFrame(() => {
+        const nextIndex = carouselCurrentIndex + 1
+        setCarouselCurrentIndex(nextIndex)
+        setCurrent(nextIndex)
+        // Complete transition faster
+        setTimeout(() => {
+          setIsCarouselTransitioning(false)
+          // Don't resume auto-advance - keep it paused after user interaction
+        }, 250) // Faster transition duration
+      })
+    }
+  }
+
+  const handleCarouselPrevPage = () => {
+    if (carouselCurrentIndex > 0 && !isCarouselTransitioning) {
+      setIsCarouselTransitioning(true)
+      pauseAutoAdvance() // Pause auto-advance when user clicks pagination
+      // Immediate transition start for snappy response
+      requestAnimationFrame(() => {
+        const prevIndex = carouselCurrentIndex - 1
+        setCarouselCurrentIndex(prevIndex)
+        setCurrent(prevIndex)
+        // Complete transition faster
+        setTimeout(() => {
+          setIsCarouselTransitioning(false)
+          // Don't resume auto-advance - keep it paused after user interaction
+        }, 250) // Faster transition duration
+      })
     }
   }
 
@@ -765,6 +774,12 @@ function Home() {
       resumeAutoAdvance()
     }
   }
+
+  // Initialize carousel current index
+  useEffect(() => {
+    setCarouselCurrentIndex(0)
+    setCurrent(0)
+  }, [validServices.length])
 
   return (
     <div className="home">
@@ -813,10 +828,126 @@ function Home() {
         </div>
       </section>
 
-      {/* Why Choose Us - Permits & Legitimacy */}
+      {/* Our Services Section with Carousel - Using Services Page Style */}
+      {validServices.length > 0 && (
+        <section className="services-preview" ref={servicesSectionRef}>
+          <div className="container">
+            <h2 className="section-title">Our Services</h2>
+            
+            <div className="services-carousel-wrapper-modern">
+              <div className="services-carousel-container-modern" ref={carouselRef}>
+                <div 
+                  className={`services-grid ${isCarouselTransitioning ? 'transitioning' : ''}`}
+                  key={`grid-${carouselCurrentIndex}`}
+                  style={{
+                    transform: 'translateX(0)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    opacity: 1
+                  }}
+                >
+                  {validServices.map((service, index) => {
+                    // Only render the current item (1 per slide)
+                    if (index !== carouselCurrentIndex) {
+                      return null
+                    }
+                    return (
+                      <Card key={service.id} className="service-card-modern-home group">
+                        <div className="service-image-modern-home">
+                          <img 
+                            src={service.image} 
+                            alt={service.name}
+                            loading="lazy"
+                          />
+                          <div className="service-image-overlay-home"></div>
+                        </div>
+                        <div className="service-overlay-home">
+                          <Button
+                            variant="secondary"
+                            className="service-view-more-btn-home"
+                            onClick={() => handleViewMore(service)}
+                          >
+                            View More
+                          </Button>
+                        </div>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Pagination - Using Services Page Style */}
+            {validServices.length > 1 && (
+              <div className="services-pagination">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault()
+                          if (carouselCurrentIndex > 0) {
+                            handleCarouselPrevPage()
+                          }
+                        }}
+                        className={carouselCurrentIndex === 0 ? 'disabled' : ''}
+                        aria-disabled={carouselCurrentIndex === 0}
+                        style={{
+                          pointerEvents: carouselCurrentIndex === 0 ? 'none' : 'auto',
+                          opacity: carouselCurrentIndex === 0 ? 0.5 : 1,
+                          cursor: carouselCurrentIndex === 0 ? 'not-allowed' : 'pointer'
+                        }}
+                      />
+                    </PaginationItem>
+                    
+                    {validServices.map((_, index) => {
+                      const page = index + 1
+                      return (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              handleCarouselPageChange(index)
+                            }}
+                            isActive={carouselCurrentIndex === index}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      )
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault()
+                          if (carouselCurrentIndex < validServices.length - 1) {
+                            handleCarouselNextPage()
+                          }
+                        }}
+                        className={carouselCurrentIndex >= validServices.length - 1 ? 'disabled' : ''}
+                        aria-disabled={carouselCurrentIndex >= validServices.length - 1}
+                        style={{
+                          pointerEvents: carouselCurrentIndex >= validServices.length - 1 ? 'none' : 'auto',
+                          opacity: carouselCurrentIndex >= validServices.length - 1 ? 0.5 : 1,
+                          cursor: carouselCurrentIndex >= validServices.length - 1 ? 'not-allowed' : 'pointer'
+                        }}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Licensed & Certified - Permits & Legitimacy */}
       <section className="permits-section" ref={whyChooseUsSectionRef}>
         <div className="container">
-          <h2 className="section-title">Why Choose Us</h2>
+          <h2 className="section-title">Licensed & Certified</h2>
           <p className="section-subtitle">Fully Licensed & Legitimate Operations</p>
           <div className="why-choose-us-wrapper">
             {/* Left Side - Image */}
@@ -839,7 +970,7 @@ function Home() {
               >
                 <CardContent className="permit-card-content">
                   <div className="permit-icon">
-                    <FileText size={32} />
+                    <BadgeCheck size={32} strokeWidth={2.5} />
                   </div>
                   <h3>With DTI Permit to Operate</h3>
                   <p>Legally registered with the Department of Trade and Industry</p>
@@ -851,7 +982,7 @@ function Home() {
               >
                 <CardContent className="permit-card-content">
                   <div className="permit-icon">
-                    <FileText size={32} />
+                    <Building2 size={32} strokeWidth={2.5} />
                   </div>
                   <h3>With Business Permit</h3>
                   <p>Fully compliant with local business regulations</p>
@@ -863,7 +994,7 @@ function Home() {
               >
                 <CardContent className="permit-card-content">
                   <div className="permit-icon">
-                    <Shield size={32} />
+                    <Shield size={32} strokeWidth={2.5} />
                   </div>
                   <h3>With Sanitary Permit</h3>
                   <p>Certified safe and sanitary operations</p>
@@ -875,7 +1006,7 @@ function Home() {
               >
                 <CardContent className="permit-card-content">
                   <div className="permit-icon">
-                    <FileText size={32} />
+                    <Receipt size={32} strokeWidth={2.5} />
                   </div>
                   <h3>With BIR Registration</h3>
                   <p>Registered with the Bureau of Internal Revenue</p>
@@ -898,7 +1029,7 @@ function Home() {
             >
               <CardContent className="treatment-card-content">
                 <div className="treatment-icon">
-                  <Shield size={40} />
+                  <Bug size={40} strokeWidth={2.5} />
                 </div>
                 <h3>Crawling Insects</h3>
                 <p className="treatment-method">Spray & Misting</p>
@@ -913,7 +1044,7 @@ function Home() {
             >
               <CardContent className="treatment-card-content">
                 <div className="treatment-icon">
-                  <Shield size={40} />
+                  <Zap size={40} strokeWidth={2.5} />
                 </div>
                 <h3>Flying Insects</h3>
                 <p className="treatment-method">Misting Treatment</p>
@@ -1020,130 +1151,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Our Services Section with Carousel */}
-      {validServices.length > 0 && (
-        <section className="services-preview" ref={servicesSectionRef}>
-          <div className="container">
-            <h2 className="section-title">Our Services</h2>
-            
-            <div 
-              className="services-carousel"
-              onMouseEnter={() => handleCarouselHover(true)}
-              onMouseLeave={() => handleCarouselHover(false)}
-            >
-              <Carousel
-                setApi={setCarouselApi}
-                opts={{
-                  align: 'start',
-                  loop: true,
-                }}
-                className="w-full"
-              >
-                <CarouselContent>
-                  {validServices.map((service) => (
-                    <CarouselItem key={service.id}>
-                      <div className="p-1">
-                        <Card className="service-card-carousel">
-                          <div className="service-image-container">
-                            <img
-                              src={service.image}
-                              alt={service.name}
-                              className="service-image"
-                              onClick={() => handleViewMore(service)}
-                            />
-                            <div className="service-overlay">
-                              <Button
-                                variant="secondary"
-                                className="view-more-btn"
-                                onClick={() => handleViewMore(service)}
-                              >
-                                View More
-                              </Button>
-                            </div>
-                          </div>
-                          <CardContent className="p-6">
-                            <h3 className="text-xl font-semibold mb-2">{service.name}</h3>
-                            <p className="text-gray-600 mb-4">{service.description}</p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-2xl font-bold text-blue-600">
-                                ₱{service.price}
-                              </span>
-                              <Button
-                                onClick={() => {
-                                  pauseAutoAdvance()
-                                  window.location.href = '/booking'
-                                }}
-                                onMouseEnter={() => handleCarouselHover(true)}
-                              >
-                                Book Service
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious 
-                  className="carousel-nav-btn"
-                />
-                <CarouselNext 
-                  className="carousel-nav-btn"
-                />
-              </Carousel>
-            </div>
-
-            {/* Pagination */}
-            {validServices.length > 1 && (
-              <Pagination className="mt-8">
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={handlePrevious}
-                      className="cursor-pointer pagination-icon-only"
-                    >
-                      <span className="sr-only">Previous</span>
-                    </PaginationPrevious>
-                  </PaginationItem>
-                  
-                  {validServices.map((_, index) => {
-                    const page = index + 1
-                    const isActive = current === index
-                    
-                    return (
-                      <PaginationItem key={`page-${page}`}>
-                        <PaginationLink
-                          href="#"
-                          isActive={isActive}
-                          onClick={(e) => {
-                            e.preventDefault()
-                            handlePageChange(page)
-                          }}
-                          className="cursor-pointer"
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    )
-                  })}
-                  
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={handleNext}
-                      className="cursor-pointer pagination-icon-only"
-                    >
-                      <span className="sr-only">Next</span>
-                    </PaginationNext>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            )}
-          </div>
-        </section>
-      )}
-
       {/* Final CTA Section */}
       <section className="final-cta-section" ref={finalCtaSectionRef}>
         <div className="container">
@@ -1165,52 +1172,56 @@ function Home() {
         </div>
       </section>
 
-      {/* Modal for View More */}
+      {/* Service Details Modal - Services Page Style */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="service-modal">
           {selectedService && (
             <>
               <DialogHeader>
-                <DialogTitle>{selectedService.name}</DialogTitle>
-                <DialogDescription>{selectedService.description}</DialogDescription>
+                <DialogTitle className="modal-title">{selectedService.name}</DialogTitle>
+                <DialogDescription className="modal-price">
+                  Starting at ₱{selectedService.price}
+                </DialogDescription>
               </DialogHeader>
-              <div className="mt-4">
-                <img
-                  src={selectedService.image}
-                  alt={selectedService.name}
-                  className="w-full h-auto rounded-lg mb-4"
-                />
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold mb-2">Details</h4>
-                    <p className="text-gray-600">{selectedService.details}</p>
+              <div className="modal-content">
+                <div className="modal-image">
+                  <img src={selectedService.image || '/image/general_pest.jpg'} alt={selectedService.name} />
+                </div>
+                <div className="modal-details">
+                  <p className="modal-description">{selectedService.details}</p>
+                  <div className="modal-section">
+                    <h4>Coverage:</h4>
+                    <p>{selectedService.coverage}</p>
                   </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Coverage</h4>
-                    <p className="text-gray-600">{selectedService.coverage}</p>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Features</h4>
-                    <ul className="list-disc list-inside space-y-1 text-gray-600">
-                      {selectedService.features.map((feature, index) => (
-                        <li key={index}>{feature}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <span className="text-2xl font-bold text-blue-600">
-                      ₱{selectedService.price}
-                    </span>
-                    <Button
-                      onClick={() => {
-                        setIsModalOpen(false)
-                        window.location.href = '/booking'
-                      }}
-                    >
-                      Book Service
-                    </Button>
+                  <div className="modal-section">
+                    <h4 className="modal-section-title">
+                      <CheckCircle2 className="modal-section-icon" />
+                      What's Included:
+                    </h4>
+                    <div className="modal-features-container">
+                      <div className="modal-treatment-grid">
+                        {selectedService.features.map((feature, index) => (
+                          <div key={index} className="modal-treatment-item">
+                            <div className="modal-feature-icon-wrapper">
+                              <CheckCircle2 className="feature-icon" />
+                            </div>
+                            <span className="modal-feature-text">{feature}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </div>
+              <div className="modal-actions">
+                <Link 
+                  to={`/booking?service=${selectedService.id}`}
+                  className="modal-book-btn"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Book This Service
+                  <ArrowRight size={16} />
+                </Link>
               </div>
             </>
           )}

@@ -31,7 +31,10 @@ export class BookingController {
       res.json(bookings)
     } catch (error) {
       console.error('Error fetching bookings:', error)
-      res.status(500).json({ message: 'Error fetching bookings' })
+      res.status(500).json({
+        message: 'Error fetching bookings',
+        detail: error.message
+      })
     }
   }
 

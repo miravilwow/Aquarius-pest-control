@@ -35,13 +35,15 @@ CREATE TABLE IF NOT EXISTS bookings (
 
 -- Note: Default admin will be created by init.js script with proper bcrypt hash
 
--- Insert default services
-INSERT INTO services (name, description, price) VALUES
-('Ant Control', 'Effective ant elimination and prevention', 150.00),
-('Roach Control', 'Complete roach removal services', 200.00),
-('Rodent Control', 'Safe rodent removal and prevention', 250.00),
-('Termite Control', 'Professional termite treatment', 300.00)
-ON CONFLICT DO NOTHING;
+-- Insert default services (only when table is empty)
+INSERT INTO services (name, description, price)
+SELECT * FROM (VALUES
+  ('Ant Control', 'Effective ant elimination and prevention', 150.00),
+  ('Roach Control', 'Complete roach removal services', 200.00),
+  ('Rodent Control', 'Safe rodent removal and prevention', 250.00),
+  ('Termite Control', 'Professional termite treatment', 300.00)
+) AS t(name, description, price)
+WHERE NOT EXISTS (SELECT 1 FROM services);
 
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_bookings_service_id ON bookings(service_id);

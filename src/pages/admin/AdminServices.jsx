@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Field, FieldLabel } from '@/components/ui/field'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import './AdminServices.css'
 
 function AdminServices() {
@@ -12,6 +15,7 @@ function AdminServices() {
     price: ''
   })
   const [editingId, setEditingId] = useState(null)
+  const [serviceToDelete, setServiceToDelete] = useState(null)
 
   useEffect(() => {
     fetchServices()
@@ -66,8 +70,6 @@ function AdminServices() {
   }
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this service?')) return
-    
     try {
       const token = localStorage.getItem('adminToken')
       await axios.delete(
@@ -79,6 +81,12 @@ function AdminServices() {
       console.error('Error deleting service:', error)
       alert('Error deleting service')
     }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!serviceToDelete) return
+    await handleDelete(serviceToDelete.id)
+    setServiceToDelete(null)
   }
 
   if (loading) {
@@ -97,33 +105,42 @@ function AdminServices() {
       {showForm && (
         <form onSubmit={handleSubmit} className="service-form">
           <div className="form-group">
-            <label>Service Name *</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
+            <Field>
+              <FieldLabel htmlFor="service-name">Service Name *</FieldLabel>
+              <input
+                id="service-name"
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+            </Field>
           </div>
           <div className="form-group">
-            <label>Description *</label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-              rows="3"
-            />
+            <Field>
+              <FieldLabel htmlFor="service-description">Description *</FieldLabel>
+              <textarea
+                id="service-description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                required
+                rows="3"
+              />
+            </Field>
           </div>
           <div className="form-group">
-            <label>Price (₱) *</label>
-            <input
-              type="number"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              required
-              min="0"
-              step="0.01"
-            />
+            <Field>
+              <FieldLabel htmlFor="service-price">Price (₱) *</FieldLabel>
+              <input
+                id="service-price"
+                type="number"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                required
+                min="0"
+                step="0.01"
+              />
+            </Field>
           </div>
           <button type="submit" className="btn-submit">
             {editingId ? 'Update Service' : 'Add Service'}
@@ -141,11 +158,44 @@ function AdminServices() {
             </div>
             <div className="service-actions">
               <button onClick={() => handleEdit(service)} className="btn-edit">Edit</button>
-              <button onClick={() => handleDelete(service.id)} className="btn-delete">Delete</button>
+              <button onClick={() => setServiceToDelete(service)} className="btn-delete">Delete</button>
             </div>
           </div>
         ))}
       </div>
+
+      <Dialog
+        open={!!serviceToDelete}
+        onOpenChange={(open) => {
+          if (!open) setServiceToDelete(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete service</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete{' '}
+              <strong>{serviceToDelete?.name}</strong>? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => setServiceToDelete(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              type="button"
+              onClick={handleConfirmDelete}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

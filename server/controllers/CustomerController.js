@@ -18,7 +18,10 @@ export class CustomerController {
       res.json(customers)
     } catch (error) {
       console.error('Error fetching customers:', error)
-      res.status(500).json({ message: 'Error fetching customers' })
+      res.status(500).json({
+        message: 'Error fetching customers',
+        detail: error.message
+      })
     }
   }
 }

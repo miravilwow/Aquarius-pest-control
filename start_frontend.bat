@@ -3,7 +3,7 @@ echo ========================================
 echo   Starting Frontend Server
 echo ========================================
 echo.
-cd /d "C:\xampp\htdocs\pest control"
+cd /d "C:\xampp\htdocs\Aquarius-pest-control"
 echo Current directory: %CD%
 echo.
 echo Starting Vite dev server...

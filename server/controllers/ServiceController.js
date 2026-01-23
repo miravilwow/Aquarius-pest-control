@@ -18,7 +18,10 @@ export class ServiceController {
       res.json(services)
     } catch (error) {
       console.error('Error fetching services:', error)
-      res.status(500).json({ message: 'Error fetching services' })
+      res.status(500).json({
+        message: 'Error fetching services',
+        detail: error.message
+      })
     }
   }
 

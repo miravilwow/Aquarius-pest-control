@@ -11,6 +11,12 @@
   overflow-x: auto;
 }
 
+.customers-pagination {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

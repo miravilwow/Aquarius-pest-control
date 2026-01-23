@@ -11,6 +11,10 @@
   overflow-x: auto;
 }
 
+.bookings-pagination {
+  margin-top: 1.5rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -25,6 +29,12 @@ th, td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid #eee;
+}
+
+th:first-child,
+td:first-child {
+  width: 40px;
+  text-align: center;
 }
 
 th {
@@ -48,6 +58,33 @@ th {
   text-align: center;
   padding: 4rem;
   font-size: 1.5rem;
+}
+
+.bookings-action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 2rem;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+  z-index: 40;
+}
+
+.bookings-action-bar-info {
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.bookings-action-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 /* Responsive Styles */
