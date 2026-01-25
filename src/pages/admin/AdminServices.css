@@ -57,6 +57,32 @@
 .service-form textarea:focus {
   outline: none;
   border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.service-form input.input-error,
+.service-form textarea.input-error {
+  border-color: #e74c3c;
+}
+
+.service-form input.input-error:focus,
+.service-form textarea.input-error:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2);
+}
+
+.error-message {
+  display: block;
+  color: #e74c3c;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
 }
 
 .btn-submit {
@@ -145,7 +171,61 @@
   font-size: 1.5rem;
 }
 
+.loading-container {
+  padding: 2rem;
+}
+
+.services-list-skeleton {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.empty-state-container {
+  background: white;
+  padding: 4rem 2rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-top: 2rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.empty-state-icon {
+  height: 4rem;
+  width: 4rem;
+  color: #9ca3af;
+  margin-bottom: 1rem;
+}
+
+.empty-state-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-description {
+  font-size: 0.875rem;
+  color: #6b7280;
+  max-width: 400px;
+}
+
 /* Responsive Styles */
+@media (max-width: 1024px) {
+  .services-list {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+}
+
 @media (max-width: 768px) {
   .admin-services h1 {
     font-size: 1.75rem;
@@ -156,28 +236,49 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .service-form {
     padding: 1.5rem;
+    margin-bottom: 1.5rem;
   }
 
   .services-list {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .services-list-skeleton {
     grid-template-columns: 1fr;
   }
 
   .service-card {
     padding: 1.25rem;
   }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-submit {
+    width: 100%;
+  }
 }
 
 @media (max-width: 480px) {
   .admin-services h1 {
     font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .services-header {
+    margin-bottom: 1rem;
   }
 
   .service-form {
     padding: 1rem;
+    margin-bottom: 1rem;
   }
 
   .btn-add,
@@ -186,8 +287,25 @@
     padding: 0.75rem;
   }
 
+  .service-card {
+    padding: 1rem;
+  }
+
   .service-price {
     font-size: 1.25rem;
+  }
+
+  .service-actions {
+    flex-direction: column;
+  }
+
+  .btn-edit,
+  .btn-delete {
+    width: 100%;
+  }
+
+  .empty-state-container {
+    padding: 2rem 1rem;
   }
 }
 

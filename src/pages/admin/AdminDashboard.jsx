@@ -33,10 +33,36 @@ import { Button } from '@/components/ui/button'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { 
+  Calendar as CalendarIcon, 
+  Clock, 
+  Users, 
+  Wrench,
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  BarChart3,
+  PieChart as PieChartIcon
+} from 'lucide-react'
 import './AdminDashboard.css'
 
 function AdminDashboard() {
   const [stats, setStats] = useState({
+    totalBookings: 0,
+    pendingBookings: 0,
+    totalCustomers: 0,
+    totalServices: 0
+  })
+  const [previousStats, setPreviousStats] = useState({
     totalBookings: 0,
     pendingBookings: 0,
     totalCustomers: 0,
@@ -122,6 +148,39 @@ function AdminDashboard() {
       const bookings = bookingsRes.data
       const pending = bookings.filter(b => b.status === 'pending').length
 
+      // Calculate previous period stats (last 30 days vs previous 30 days)
+      const now = new Date()
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
+      
+      const currentPeriodBookings = bookings.filter(b => {
+        const bookingDate = new Date(b.created_at || b.preferred_date)
+        return bookingDate >= thirtyDaysAgo
+      })
+      
+      const previousPeriodBookings = bookings.filter(b => {
+        const bookingDate = new Date(b.created_at || b.preferred_date)
+        return bookingDate >= sixtyDaysAgo && bookingDate < thirtyDaysAgo
+      })
+
+      const currentPeriodCustomers = customersRes.data.filter(c => {
+        const customerDate = new Date(c.created_at || c.registered_at || Date.now())
+        return customerDate >= thirtyDaysAgo
+      })
+      
+      const previousPeriodCustomers = customersRes.data.filter(c => {
+        const customerDate = new Date(c.created_at || c.registered_at || Date.now())
+        return customerDate >= sixtyDaysAgo && customerDate < thirtyDaysAgo
+      })
+
+      // Store previous stats for trend calculation
+      setPreviousStats({
+        totalBookings: previousPeriodBookings.length,
+        pendingBookings: previousPeriodBookings.filter(b => b.status === 'pending').length,
+        totalCustomers: previousPeriodCustomers.length,
+        totalServices: servicesRes.data.length // Services don't change frequently
+      })
+
       setBookingsRaw(bookings)
 
       setStats({
@@ -140,6 +199,24 @@ function AdminDashboard() {
   }
 
   const COLORS = ['#3498db', '#e74c3c', '#27ae60', '#f39c12', '#9b59b6']
+
+  // Calculate trend percentage
+  const calculateTrend = (current, previous) => {
+    if (previous === 0) {
+      return current > 0 ? { percentage: 100, isPositive: true } : { percentage: 0, isPositive: false }
+    }
+    const percentage = ((current - previous) / previous) * 100
+    return {
+      percentage: Math.abs(percentage).toFixed(1),
+      isPositive: percentage >= 0
+    }
+  }
+
+  // Get trend indicators for each stat
+  const bookingTrend = calculateTrend(stats.totalBookings, previousStats.totalBookings)
+  const pendingTrend = calculateTrend(stats.pendingBookings, previousStats.pendingBookings)
+  const customerTrend = calculateTrend(stats.totalCustomers, previousStats.totalCustomers)
+  const serviceTrend = calculateTrend(stats.totalServices, previousStats.totalServices)
 
   // Interactive Area Chart (shadcn + recharts demo)
   const interactiveChartData = [
@@ -295,35 +372,42 @@ function AdminDashboard() {
         <h1>Dashboard</h1>
         <div className="stats-grid">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="stat-card">
-              <Skeleton className="h-4 w-24 mb-3" />
-              <Skeleton className="h-8 w-20" />
-            </div>
+            <Card key={i} className="stat-card-enhanced">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-4 rounded" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16 mb-2" />
+                <Skeleton className="h-3 w-32" />
+              </CardContent>
+            </Card>
           ))}
         </div>
         <div className="charts-section">
           <div className="chart-container">
-            <Skeleton className="h-[300px] w-full" />
+            <Skeleton className="h-[300px] w-full rounded-lg" />
           </div>
           <div className="chart-container">
-            <Skeleton className="h-[300px] w-full" />
+            <Skeleton className="h-[300px] w-full rounded-lg" />
           </div>
           <div className="chart-container">
-            <Skeleton className="h-[300px] w-full" />
+            <Skeleton className="h-[300px] w-full rounded-lg" />
           </div>
         </div>
         <div className="recent-bookings">
           <h2>Recent Bookings</h2>
-          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full rounded-lg" />
         </div>
       </div>
     )
   }
 
   return (
-    <div className="admin-dashboard">
+    <div className="admin-dashboard" role="main" aria-label="Admin Dashboard">
+      <a href="#dashboard-content" className="skip-to-main">Skip to main content</a>
       <div className="dashboard-header-row">
-        <h1>Dashboard</h1>
+        <h1 id="dashboard-title">Dashboard</h1>
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm">
@@ -332,7 +416,31 @@ function AdminDashboard() {
           </PopoverTrigger>
           <PopoverContent align="end">
             <div className="dashboard-filter-content">
-              <p className="dashboard-filter-title">Time range</p>
+              <p className="dashboard-filter-title">Quick Filters</p>
+              <div className="flex flex-wrap gap-2 mt-2">
+                <Button
+                  variant={timeRange === '7d' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeRange('7d')}
+                >
+                  Last 7 Days
+                </Button>
+                <Button
+                  variant={timeRange === '30d' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeRange('30d')}
+                >
+                  Last 30 Days
+                </Button>
+                <Button
+                  variant={timeRange === '90d' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeRange('90d')}
+                >
+                  Last 3 Months
+                </Button>
+              </div>
+              <p className="dashboard-filter-title" style={{ marginTop: '1rem' }}>Time range</p>
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger
                   className="w-full rounded-lg mt-2"
@@ -391,7 +499,7 @@ function AdminDashboard() {
                   selected={dateRange}
                   onSelect={setDateRange}
                   numberOfMonths={1}
-                  className="dashboard-calendar"
+                  className="rounded-lg border"
                 />
               </div>
             </div>
@@ -406,62 +514,193 @@ function AdminDashboard() {
         </div>
       )}
       <div className="stats-grid">
-        <div className="stat-card">
-          <h3>Total Bookings</h3>
-          <p className="stat-number">{stats.totalBookings}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Pending Bookings</h3>
-          <p className="stat-number warning">{stats.pendingBookings}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Total Customers</h3>
-          <p className="stat-number">{stats.totalCustomers}</p>
-        </div>
-        <div className="stat-card">
-          <h3>Services</h3>
-          <p className="stat-number">{stats.totalServices}</p>
-        </div>
+        <Card 
+          className="stat-card-enhanced stat-card-bookings"
+          onClick={() => {
+            setStatusFilter('all')
+            setDateRange(undefined)
+          }}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalBookings}</div>
+            <div className="flex items-center gap-1 mt-1">
+              {bookingTrend.percentage > 0 && (
+                <>
+                  {bookingTrend.isPositive ? (
+                    <TrendingUp className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-600" />
+                  )}
+                  <p className={`text-xs font-medium ${bookingTrend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                    {bookingTrend.percentage}% {bookingTrend.isPositive ? 'increase' : 'decrease'}
+                  </p>
+                </>
+              )}
+              {bookingTrend.percentage === 0 && (
+                <p className="text-xs text-muted-foreground">No change</p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              All time bookings
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="stat-card-enhanced stat-card-pending"
+          onClick={() => {
+            setStatusFilter('pending')
+            setDateRange(undefined)
+          }}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Bookings</CardTitle>
+            <AlertCircle className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">{stats.pendingBookings}</div>
+            <div className="flex items-center gap-1 mt-1">
+              {pendingTrend.percentage > 0 && (
+                <>
+                  {pendingTrend.isPositive ? (
+                    <TrendingUp className="h-3 w-3 text-red-600" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-green-600" />
+                  )}
+                  <p className={`text-xs font-medium ${pendingTrend.isPositive ? 'text-red-600' : 'text-green-600'}`}>
+                    {pendingTrend.percentage}% {pendingTrend.isPositive ? 'increase' : 'decrease'}
+                  </p>
+                </>
+              )}
+              {pendingTrend.percentage === 0 && (
+                <p className="text-xs text-muted-foreground">No change</p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Requires attention
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="stat-card-enhanced stat-card-customers">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalCustomers}</div>
+            <div className="flex items-center gap-1 mt-1">
+              {customerTrend.percentage > 0 && (
+                <>
+                  {customerTrend.isPositive ? (
+                    <TrendingUp className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-600" />
+                  )}
+                  <p className={`text-xs font-medium ${customerTrend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                    {customerTrend.percentage}% {customerTrend.isPositive ? 'increase' : 'decrease'}
+                  </p>
+                </>
+              )}
+              {customerTrend.percentage === 0 && (
+                <p className="text-xs text-muted-foreground">No change</p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Registered customers
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="stat-card-enhanced stat-card-services">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Services</CardTitle>
+            <Wrench className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalServices}</div>
+            <div className="flex items-center gap-1 mt-1">
+              {serviceTrend.percentage > 0 && (
+                <>
+                  {serviceTrend.isPositive ? (
+                    <TrendingUp className="h-3 w-3 text-green-600" />
+                  ) : (
+                    <TrendingDown className="h-3 w-3 text-red-600" />
+                  )}
+                  <p className={`text-xs font-medium ${serviceTrend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                    {serviceTrend.percentage}% {serviceTrend.isPositive ? 'increase' : 'decrease'}
+                  </p>
+                </>
+              )}
+              {serviceTrend.percentage === 0 && (
+                <p className="text-xs text-muted-foreground">No change</p>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Available services
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Charts Section */}
       <div className="charts-section">
         <div className="chart-container">
           <h2>Bookings by Status</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={chartData.bookingsByStatus}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {chartData.bookingsByStatus.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          {chartData.bookingsByStatus.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={chartData.bookingsByStatus}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {chartData.bookingsByStatus.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="chart-empty-state">
+              <PieChartIcon className="empty-state-icon" />
+              <p className="empty-state-text">No booking data available</p>
+              <p className="empty-state-subtext">Charts will appear once bookings are created</p>
+            </div>
+          )}
         </div>
 
         <div className="chart-container">
           <h2>Bookings by Service</h2>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={chartData.bookingsByService}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="bookings" fill="#3498db" />
-            </BarChart>
-          </ResponsiveContainer>
+          {chartData.bookingsByService.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData.bookingsByService}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="bookings" fill="#3498db" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="chart-empty-state">
+              <BarChart3 className="empty-state-icon" />
+              <p className="empty-state-text">No service data available</p>
+              <p className="empty-state-subtext">Charts will appear once bookings are created</p>
+            </div>
+          )}
         </div>
 
         <div className="chart-container">
@@ -475,36 +714,49 @@ function AdminDashboard() {
 
       <div className="recent-bookings">
         <h2>Recent Bookings</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Service</th>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Customer</TableHead>
+              <TableHead>Service</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {recentBookings.length > 0 ? (
               recentBookings.map(booking => (
-                <tr key={booking.id}>
-                  <td>{booking.name}</td>
-                  <td>{booking.service_name || 'N/A'}</td>
-                  <td>{new Date(booking.preferred_date).toLocaleDateString()}</td>
-                  <td>
-                    <span className={`status-badge ${booking.status}`}>
-                      {booking.status}
-                    </span>
-                  </td>
-                </tr>
+                <TableRow key={booking.id}>
+                  <TableCell>{booking.name}</TableCell>
+                  <TableCell>{booking.service_name || 'N/A'}</TableCell>
+                  <TableCell>{new Date(booking.preferred_date).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Badge variant={
+                      booking.status === 'pending' ? 'secondary' :
+                      booking.status === 'confirmed' ? 'default' :
+                      booking.status === 'completed' ? 'default' :
+                      booking.status === 'cancelled' ? 'destructive' : 'outline'
+                    }>
+                      {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
               ))
             ) : (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center' }}>No bookings yet</td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-12">
+                  <div className="empty-state">
+                    <CalendarIcon className="empty-state-icon" />
+                    <h3 className="empty-state-title">No bookings yet</h3>
+                    <p className="empty-state-description">
+                      Recent bookings will appear here once customers start making reservations.
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
     </div>
   )

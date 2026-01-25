@@ -24,4 +24,15 @@ export default defineConfig({
       }
     }
   },
+  build: {
+    // Use safer build options to minimize eval usage
+    minify: 'esbuild',
+    sourcemap: false, // Disable sourcemaps in production to avoid eval
+  },
+  // Optimize dependencies to reduce eval usage
+  optimizeDeps: {
+    esbuildOptions: {
+      target: 'es2020',
+    },
+  },
 })

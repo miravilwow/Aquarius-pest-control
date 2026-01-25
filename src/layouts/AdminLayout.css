@@ -1,2 +1,33 @@
 /* Admin Layout styles are now handled by Tailwind CSS and shadcn/ui sidebar */
 /* This file is kept for any custom overrides if needed */
+
+/* Responsive Admin Layout */
+@media (max-width: 768px) {
+  /* Header adjustments for mobile */
+  header {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Main content padding */
+  main {
+    padding: 1rem !important;
+  }
+
+  /* Sidebar will be handled by shadcn/ui sidebar component */
+  /* It automatically becomes a drawer on mobile */
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 0.5rem 0.75rem !important;
+  }
+
+  main {
+    padding: 0.75rem !important;
+  }
+
+  /* Hide some header elements on very small screens */
+  header .flex-1 {
+    min-width: 0;
+  }
+}

@@ -1519,13 +1519,9 @@
   .services-grid.transitioning {
     opacity: 0;
     transform: translateX(8px) scale(0.97);
-  }
-
-  .services-grid:not(.transitioning) .service-card-modern {
+  }  .services-grid:not(.transitioning) .service-card-modern {
     animation: cardSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .services-grid:not(.transitioning) .service-card-modern:nth-child(1),
+  }  .services-grid:not(.transitioning) .service-card-modern:nth-child(1),
   .services-grid:not(.transitioning) .service-card-modern:nth-child(2),
   .services-grid:not(.transitioning) .service-card-modern:nth-child(3),
   .services-grid:not(.transitioning) .service-card-modern:nth-child(4) {

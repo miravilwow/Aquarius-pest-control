@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { toast } from 'sonner'
+import { logActivity, ActivityType } from '@/utils/activityLog'
 import { Field, FieldLabel } from '@/components/ui/field'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Wrench, Plus } from 'lucide-react'
 import './AdminServices.css'
 
 function AdminServices() {
@@ -10,6 +23,11 @@ function AdminServices() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: ''
+  })
+  const [formErrors, setFormErrors] = useState({
     name: '',
     description: '',
     price: ''
@@ -32,8 +50,59 @@ function AdminServices() {
     }
   }
 
+  const validateForm = () => {
+    const errors = {
+      name: '',
+      description: '',
+      price: ''
+    }
+    let isValid = true
+
+    // Validate name
+    if (!formData.name.trim()) {
+      errors.name = 'Service name is required'
+      isValid = false
+    } else if (formData.name.trim().length < 3) {
+      errors.name = 'Service name must be at least 3 characters'
+      isValid = false
+    }
+
+    // Validate description
+    if (!formData.description.trim()) {
+      errors.description = 'Description is required'
+      isValid = false
+    } else if (formData.description.trim().length < 10) {
+      errors.description = 'Description must be at least 10 characters'
+      isValid = false
+    }
+
+    // Validate price
+    if (!formData.price || formData.price === '') {
+      errors.price = 'Price is required'
+      isValid = false
+    } else {
+      const priceNum = parseFloat(formData.price)
+      if (isNaN(priceNum) || priceNum <= 0) {
+        errors.price = 'Price must be a positive number'
+        isValid = false
+      }
+    }
+
+    setFormErrors(errors)
+    return isValid
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate form before submitting
+    if (!validateForm()) {
+      toast.error('Please fix the form errors', {
+        description: 'Check all fields and try again.',
+      })
+      return
+    }
+
     try {
       const token = localStorage.getItem('adminToken')
       if (editingId) {
@@ -42,20 +111,44 @@ function AdminServices() {
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         )
+        toast.success('Service updated successfully!', {
+          description: `${formData.name} has been updated.`,
+        })
+        logActivity(ActivityType.SERVICE_UPDATED, {
+          serviceName: formData.name,
+          serviceId: editingId,
+        })
       } else {
         await axios.post(
           'http://localhost:5000/api/admin/services',
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         )
+        toast.success('Service created successfully!', {
+          description: `${formData.name} has been added.`,
+        })
+        logActivity(ActivityType.SERVICE_CREATED, {
+          serviceName: formData.name,
+        })
       }
       fetchServices()
       setShowForm(false)
       setFormData({ name: '', description: '', price: '' })
+      setFormErrors({ name: '', description: '', price: '' })
       setEditingId(null)
     } catch (error) {
       console.error('Error saving service:', error)
-      alert('Error saving service')
+      toast.error('Error saving service', {
+        description: error.response?.data?.message || 'Failed to save service. Please try again.',
+      })
+    }
+  }
+
+  const handleInputChange = (field, value) => {
+    setFormData({ ...formData, [field]: value })
+    // Clear error when user starts typing
+    if (formErrors[field]) {
+      setFormErrors({ ...formErrors, [field]: '' })
     }
   }
 
@@ -65,41 +158,79 @@ function AdminServices() {
       description: service.description,
       price: service.price
     })
+    setFormErrors({ name: '', description: '', price: '' })
     setEditingId(service.id)
     setShowForm(true)
   }
 
-  const handleDelete = async (id) => {
+  const handleCancel = () => {
+    setShowForm(false)
+    setFormData({ name: '', description: '', price: '' })
+    setFormErrors({ name: '', description: '', price: '' })
+    setEditingId(null)
+  }
+
+  const handleDelete = async (id, serviceName) => {
     try {
       const token = localStorage.getItem('adminToken')
       await axios.delete(
         `http://localhost:5000/api/admin/services/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       )
+      toast.success('Service deleted successfully!', {
+        description: `${serviceName} has been removed.`,
+      })
+      logActivity(ActivityType.SERVICE_DELETED, {
+        serviceName: serviceName,
+        serviceId: id,
+      })
       fetchServices()
     } catch (error) {
       console.error('Error deleting service:', error)
-      alert('Error deleting service')
+      toast.error('Error deleting service', {
+        description: error.response?.data?.message || 'Failed to delete service. Please try again.',
+      })
     }
   }
 
   const handleConfirmDelete = async () => {
     if (!serviceToDelete) return
-    await handleDelete(serviceToDelete.id)
+    const serviceName = serviceToDelete.name
     setServiceToDelete(null)
+    await handleDelete(serviceToDelete.id, serviceName)
   }
 
   if (loading) {
-    return <div className="loading">Loading services...</div>
+    return (
+      <div className="admin-services">
+        <div className="services-header">
+          <h1>Services Management</h1>
+        </div>
+        <div className="loading-container">
+          <Skeleton className="h-12 w-full mb-4" />
+          <div className="services-list-skeleton">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-48 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="admin-services">
       <div className="services-header">
         <h1>Services Management</h1>
-        <button onClick={() => setShowForm(!showForm)} className="btn-add">
+        <Button onClick={() => {
+          if (showForm) {
+            handleCancel()
+          } else {
+            setShowForm(true)
+          }
+        }} variant={showForm ? "outline" : "default"}>
           {showForm ? 'Cancel' : 'Add New Service'}
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -111,9 +242,13 @@ function AdminServices() {
                 id="service-name"
                 type="text"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                className={formErrors.name ? 'input-error' : ''}
+                placeholder="e.g., General Pest Control"
               />
+              {formErrors.name && (
+                <span className="error-message">{formErrors.name}</span>
+              )}
             </Field>
           </div>
           <div className="form-group">
@@ -122,10 +257,14 @@ function AdminServices() {
               <textarea
                 id="service-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                required
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                className={formErrors.description ? 'input-error' : ''}
                 rows="3"
+                placeholder="Describe the service in detail..."
               />
+              {formErrors.description && (
+                <span className="error-message">{formErrors.description}</span>
+              )}
             </Field>
           </div>
           <div className="form-group">
@@ -135,67 +274,87 @@ function AdminServices() {
                 id="service-price"
                 type="number"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                required
+                onChange={(e) => handleInputChange('price', e.target.value)}
+                className={formErrors.price ? 'input-error' : ''}
                 min="0"
                 step="0.01"
+                placeholder="0.00"
               />
+              {formErrors.price && (
+                <span className="error-message">{formErrors.price}</span>
+              )}
             </Field>
           </div>
-          <button type="submit" className="btn-submit">
-            {editingId ? 'Update Service' : 'Add Service'}
-          </button>
+          <div className="form-actions">
+            <Button type="button" variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">
+              {editingId ? 'Update Service' : 'Add Service'}
+            </Button>
+          </div>
         </form>
       )}
 
-      <div className="services-list">
-        {services.map(service => (
-          <div key={service.id} className="service-card">
-            <div className="service-info">
-              <h3>{service.name}</h3>
-              <p>{service.description}</p>
-              <div className="service-price">₱{service.price}</div>
+      {services.length > 0 ? (
+        <div className="services-list">
+          {services.map(service => (
+            <div key={service.id} className="service-card">
+              <div className="service-info">
+                <h3>{service.name}</h3>
+                <p>{service.description}</p>
+                <div className="service-price">₱{service.price}</div>
+              </div>
+              <div className="service-actions">
+                <button onClick={() => handleEdit(service)} className="btn-edit">Edit</button>
+                <button onClick={() => setServiceToDelete(service)} className="btn-delete">Delete</button>
+              </div>
             </div>
-            <div className="service-actions">
-              <button onClick={() => handleEdit(service)} className="btn-edit">Edit</button>
-              <button onClick={() => setServiceToDelete(service)} className="btn-delete">Delete</button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <Dialog
-        open={!!serviceToDelete}
-        onOpenChange={(open) => {
-          if (!open) setServiceToDelete(null)
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete service</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete{' '}
-              <strong>{serviceToDelete?.name}</strong>? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end gap-2 mt-4">
+          ))}
+        </div>
+      ) : (
+        <div className="empty-state-container">
+          <div className="empty-state">
+            <Wrench className="empty-state-icon" />
+            <h3 className="empty-state-title">No services yet</h3>
+            <p className="empty-state-description">
+              Get started by adding your first service. Services will appear here once created.
+            </p>
             <Button
-              variant="outline"
-              type="button"
-              onClick={() => setServiceToDelete(null)}
+              onClick={() => setShowForm(true)}
+              className="mt-4"
             >
-              Cancel
+              <Plus className="h-4 w-4 mr-2" />
+              Add Your First Service
             </Button>
-            <Button
-              variant="destructive"
-              type="button"
+          </div>
+        </div>
+      )}
+
+      <AlertDialog open={!!serviceToDelete} onOpenChange={(open) => {
+        if (!open) setServiceToDelete(null)
+      }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete{' '}
+              <strong>{serviceToDelete?.name}</strong> service.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setServiceToDelete(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
               onClick={handleConfirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
