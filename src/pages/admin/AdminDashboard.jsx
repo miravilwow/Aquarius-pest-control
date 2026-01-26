@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react'
 import axios from 'axios'
 import {
   BarChart,
@@ -81,7 +81,12 @@ function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState('all')
   const [dateRange, setDateRange] = useState()
 
-  const prepareChartData = (bookings) => {
+  /**
+   * Prepare chart data from bookings array
+   * @param {Array} bookings - Array of booking objects
+   * @returns {void} Sets chartData state
+   */
+  const prepareChartData = useCallback((bookings) => {
     // Bookings by Status (Pie Chart)
     const statusCount = {}
     bookings.forEach(booking => {
@@ -125,13 +130,14 @@ function AdminDashboard() {
       bookingsByService,
       bookingsByMonth
     })
-  }
-
-  useEffect(() => {
-    fetchDashboardData()
   }, [])
 
-  const fetchDashboardData = async () => {
+  /**
+   * Fetch dashboard data (bookings, customers, services)
+   * @async
+   * @returns {Promise<void>}
+   */
+  const fetchDashboardData = useCallback(async () => {
     setFetchError(null)
     try {
       const token = localStorage.getItem('adminToken')
@@ -196,7 +202,11 @@ function AdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchDashboardData()
+  }, [fetchDashboardData])
 
   const COLORS = ['#3498db', '#e74c3c', '#27ae60', '#f39c12', '#9b59b6']
 
@@ -318,15 +328,10 @@ function AdminDashboard() {
     mobile: { label: 'Mobile', color: '#e74c3c' },
   }
 
-  useEffect(() => {
+  // Memoize filtered bookings to avoid recalculating on every render
+  const filteredBookingsForCharts = useMemo(() => {
     if (!bookingsRaw || bookingsRaw.length === 0) {
-      setChartData({
-        bookingsByStatus: [],
-        bookingsByService: [],
-        bookingsByMonth: []
-      })
-      setRecentBookings([])
-      return
+      return []
     }
 
     let filtered =
@@ -362,9 +367,23 @@ function AdminDashboard() {
       })
     }
 
-    prepareChartData(filtered)
-    setRecentBookings(filtered.slice(0, 5))
+    return filtered
   }, [bookingsRaw, statusFilter, dateRange])
+
+  useEffect(() => {
+    if (filteredBookingsForCharts.length === 0) {
+      setChartData({
+        bookingsByStatus: [],
+        bookingsByService: [],
+        bookingsByMonth: []
+      })
+      setRecentBookings([])
+      return
+    }
+
+    prepareChartData(filteredBookingsForCharts)
+    setRecentBookings(filteredBookingsForCharts.slice(0, 5))
+  }, [filteredBookingsForCharts, prepareChartData])
 
   if (loading) {
     return (
@@ -406,11 +425,21 @@ function AdminDashboard() {
   return (
     <div className="admin-dashboard" role="main" aria-label="Admin Dashboard">
       <a href="#dashboard-content" className="skip-to-main">Skip to main content</a>
+      {/* ARIA live region for dynamic updates */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {loading ? 'Loading dashboard data...' : `Dashboard loaded. ${stats.totalBookings} total bookings, ${stats.totalCustomers} customers`}
+      </div>
       <div className="dashboard-header-row">
         <h1 id="dashboard-title">Dashboard</h1>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              aria-label="Open filters"
+              aria-expanded={false}
+              aria-haspopup="true"
+            >
               Filters
             </Button>
           </PopoverTrigger>
@@ -762,7 +791,16 @@ function AdminDashboard() {
   )
 }
 
-function ChartAreaInteractive({ data, config, timeRange }) {
+/**
+ * Interactive Area Chart Component
+ * Displays booking trends over time with filtering
+ * @param {Object} props - Component props
+ * @param {Array} props.data - Chart data array
+ * @param {Object} props.config - Chart configuration (colors, labels)
+ * @param {string} props.timeRange - Time range filter (7d, 30d, 90d)
+ * @returns {JSX.Element} Area chart component
+ */
+const ChartAreaInteractive = memo(function ChartAreaInteractive({ data, config, timeRange }) {
   const filteredData = data.filter((item) => {
     const date = new Date(item.date)
     const referenceDate = new Date('2024-06-30')
@@ -826,7 +864,9 @@ function ChartAreaInteractive({ data, config, timeRange }) {
       </CardContent>
     </Card>
   )
-}
+})
+
+ChartAreaInteractive.displayName = 'ChartAreaInteractive'
 
 export default AdminDashboard
 

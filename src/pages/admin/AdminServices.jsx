@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, memo } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { logActivity, ActivityType } from '@/utils/activityLog'
@@ -18,6 +18,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Wrench, Plus } from 'lucide-react'
 import './AdminServices.css'
 
+// Admin Services Management Component
+// Handles CRUD operations for pest control services
 function AdminServices() {
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
@@ -34,12 +36,9 @@ function AdminServices() {
   })
   const [editingId, setEditingId] = useState(null)
   const [serviceToDelete, setServiceToDelete] = useState(null)
+  const [originalService, setOriginalService] = useState(null)
 
-  useEffect(() => {
-    fetchServices()
-  }, [])
-
-  const fetchServices = async () => {
+  const fetchServices = useCallback(async () => {
     try {
       const response = await axios.get('http://localhost:5000/api/services')
       setServices(response.data)
@@ -48,9 +47,17 @@ function AdminServices() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const validateForm = () => {
+  useEffect(() => {
+    fetchServices()
+  }, [fetchServices])
+
+  /**
+   * Validate service form data
+   * @returns {boolean} True if form is valid, false otherwise
+   */
+  const validateForm = useCallback(() => {
     const errors = {
       name: '',
       description: '',
@@ -90,9 +97,15 @@ function AdminServices() {
 
     setFormErrors(errors)
     return isValid
-  }
+  }, [formData])
 
-  const handleSubmit = async (e) => {
+  /**
+   * Handle service form submission (create or update)
+   * @async
+   * @param {Event} e - Form submit event
+   * @returns {Promise<void>}
+   */
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
     
     // Validate form before submitting
@@ -111,12 +124,33 @@ function AdminServices() {
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         )
+        
+        // Build detailed update message
+        const changes = []
+        if (originalService) {
+          if (originalService.name !== formData.name) {
+            changes.push(`Name: "${originalService.name}" → "${formData.name}"`)
+          }
+          if (originalService.description !== formData.description) {
+            changes.push('Description updated')
+          }
+          if (parseFloat(originalService.price) !== parseFloat(formData.price)) {
+            changes.push(`Price: ₱${parseFloat(originalService.price).toFixed(2)} → ₱${parseFloat(formData.price).toFixed(2)}`)
+          }
+        }
+        
+        const updateMessage = changes.length > 0 
+          ? `Updated: ${changes.join(', ')}`
+          : `${formData.name} has been updated.`
+        
         toast.success('Service updated successfully!', {
-          description: `${formData.name} has been updated.`,
+          description: updateMessage,
+          duration: 4000, // Show for 4 seconds
         })
         logActivity(ActivityType.SERVICE_UPDATED, {
           serviceName: formData.name,
           serviceId: editingId,
+          changes: changes,
         })
       } else {
         await axios.post(
@@ -131,28 +165,37 @@ function AdminServices() {
           serviceName: formData.name,
         })
       }
-      fetchServices()
+      await fetchServices()
       setShowForm(false)
       setFormData({ name: '', description: '', price: '' })
       setFormErrors({ name: '', description: '', price: '' })
       setEditingId(null)
+      setOriginalService(null) // Clear original service data
     } catch (error) {
       console.error('Error saving service:', error)
       toast.error('Error saving service', {
         description: error.response?.data?.message || 'Failed to save service. Please try again.',
       })
     }
-  }
+  }, [editingId, formData, originalService, fetchServices, validateForm])
 
-  const handleInputChange = (field, value) => {
-    setFormData({ ...formData, [field]: value })
+  /**
+   * Handle input field changes and clear errors
+   * @param {string} field - Field name (name, description, price)
+   * @param {string} value - New field value
+   */
+  const handleInputChange = useCallback((field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
     // Clear error when user starts typing
-    if (formErrors[field]) {
-      setFormErrors({ ...formErrors, [field]: '' })
-    }
-  }
+    setFormErrors((prev) => {
+      if (prev[field]) {
+        return { ...prev, [field]: '' }
+      }
+      return prev
+    })
+  }, [])
 
-  const handleEdit = (service) => {
+  const handleEdit = useCallback((service) => {
     setFormData({
       name: service.name,
       description: service.description,
@@ -160,17 +203,26 @@ function AdminServices() {
     })
     setFormErrors({ name: '', description: '', price: '' })
     setEditingId(service.id)
+    setOriginalService({ ...service }) // Store original values for comparison
     setShowForm(true)
-  }
+  }, [])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setShowForm(false)
     setFormData({ name: '', description: '', price: '' })
     setFormErrors({ name: '', description: '', price: '' })
     setEditingId(null)
-  }
+    setOriginalService(null) // Clear original service data
+  }, [])
 
-  const handleDelete = async (id, serviceName) => {
+  /**
+   * Delete a service
+   * @async
+   * @param {number} id - Service ID
+   * @param {string} serviceName - Service name (for notification)
+   * @returns {Promise<void>}
+   */
+  const handleDelete = useCallback(async (id, serviceName) => {
     try {
       const token = localStorage.getItem('adminToken')
       await axios.delete(
@@ -184,21 +236,27 @@ function AdminServices() {
         serviceName: serviceName,
         serviceId: id,
       })
-      fetchServices()
+      await fetchServices()
     } catch (error) {
       console.error('Error deleting service:', error)
       toast.error('Error deleting service', {
         description: error.response?.data?.message || 'Failed to delete service. Please try again.',
       })
     }
-  }
+  }, [fetchServices])
 
-  const handleConfirmDelete = async () => {
+  /**
+   * Confirm and execute service deletion
+   * @async
+   * @returns {Promise<void>}
+   */
+  const handleConfirmDelete = useCallback(async () => {
     if (!serviceToDelete) return
     const serviceName = serviceToDelete.name
+    const serviceId = serviceToDelete.id
     setServiceToDelete(null)
-    await handleDelete(serviceToDelete.id, serviceName)
-  }
+    await handleDelete(serviceId, serviceName)
+  }, [serviceToDelete, handleDelete])
 
   if (loading) {
     return (
@@ -219,7 +277,11 @@ function AdminServices() {
   }
 
   return (
-    <div className="admin-services">
+    <div className="admin-services" role="main" aria-label="Services Management">
+      {/* ARIA live region for dynamic updates */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {loading ? 'Loading services...' : `${services.length} service${services.length !== 1 ? 's' : ''} available`}
+      </div>
       <div className="services-header">
         <h1>Services Management</h1>
         <Button onClick={() => {
@@ -234,7 +296,12 @@ function AdminServices() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="service-form">
+        <form 
+          onSubmit={handleSubmit} 
+          className="service-form"
+          aria-label={editingId ? 'Edit service form' : 'Add new service form'}
+          noValidate
+        >
           <div className="form-group">
             <Field>
               <FieldLabel htmlFor="service-name">Service Name *</FieldLabel>
@@ -245,9 +312,11 @@ function AdminServices() {
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 className={formErrors.name ? 'input-error' : ''}
                 placeholder="e.g., General Pest Control"
+                aria-invalid={!!formErrors.name}
+                aria-describedby={formErrors.name ? 'service-name-error' : undefined}
               />
               {formErrors.name && (
-                <span className="error-message">{formErrors.name}</span>
+                <span id="service-name-error" className="error-message" role="alert">{formErrors.name}</span>
               )}
             </Field>
           </div>
@@ -261,9 +330,11 @@ function AdminServices() {
                 className={formErrors.description ? 'input-error' : ''}
                 rows="3"
                 placeholder="Describe the service in detail..."
+                aria-invalid={!!formErrors.description}
+                aria-describedby={formErrors.description ? 'service-description-error' : undefined}
               />
               {formErrors.description && (
-                <span className="error-message">{formErrors.description}</span>
+                <span id="service-description-error" className="error-message" role="alert">{formErrors.description}</span>
               )}
             </Field>
           </div>
@@ -279,9 +350,11 @@ function AdminServices() {
                 min="0"
                 step="0.01"
                 placeholder="0.00"
+                aria-invalid={!!formErrors.price}
+                aria-describedby={formErrors.price ? 'service-price-error' : undefined}
               />
               {formErrors.price && (
-                <span className="error-message">{formErrors.price}</span>
+                <span id="service-price-error" className="error-message" role="alert">{formErrors.price}</span>
               )}
             </Field>
           </div>
@@ -331,13 +404,16 @@ function AdminServices() {
         </div>
       )}
 
-      <AlertDialog open={!!serviceToDelete} onOpenChange={(open) => {
-        if (!open) setServiceToDelete(null)
-      }}>
-        <AlertDialogContent>
+      <AlertDialog 
+        open={!!serviceToDelete} 
+        onOpenChange={(open) => {
+          if (!open) setServiceToDelete(null)
+        }}
+      >
+        <AlertDialogContent aria-describedby="delete-service-description">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription id="delete-service-description">
               This action cannot be undone. This will permanently delete{' '}
               <strong>{serviceToDelete?.name}</strong> service.
             </AlertDialogDescription>
@@ -359,5 +435,6 @@ function AdminServices() {
   )
 }
 
-export default AdminServices
+// Memoize the component to prevent unnecessary re-renders
+export default memo(AdminServices)
 

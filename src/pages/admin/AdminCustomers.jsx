@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { logActivity, ActivityType } from '@/utils/activityLog'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Users, Download } from 'lucide-react'
+import { Users, Download, Search } from 'lucide-react'
+import debounce from 'lodash.debounce'
 import {
   useReactTable,
   getCoreRowModel,
@@ -41,12 +42,31 @@ function AdminCustomers() {
   const [sorting, setSorting] = useState([])
   const [columnVisibility, setColumnVisibility] = useState({})
   const [globalFilter, setGlobalFilter] = useState('')
+  const [searchInputValue, setSearchInputValue] = useState('')
+  const debouncedSearchRef = useRef(null)
 
+  // Debounced search function
   useEffect(() => {
-    fetchCustomers()
+    debouncedSearchRef.current = debounce((value) => {
+      setGlobalFilter(value)
+    }, 300)
+
+    return () => {
+      if (debouncedSearchRef.current) {
+        debouncedSearchRef.current.cancel()
+      }
+    }
   }, [])
 
-  const fetchCustomers = async () => {
+  // Handle search input change with debouncing
+  const handleSearchChange = useCallback((value) => {
+    setSearchInputValue(value)
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current(value)
+    }
+  }, [])
+
+  const fetchCustomers = useCallback(async () => {
     try {
       const token = localStorage.getItem('adminToken')
       const response = await axios.get('http://localhost:5000/api/admin/customers', {
@@ -58,7 +78,11 @@ function AdminCustomers() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchCustomers()
+  }, [fetchCustomers])
 
   const columns = useMemo(
     () => [
@@ -119,7 +143,7 @@ function AdminCustomers() {
   })
 
   // Export to CSV
-  const exportToCSV = () => {
+  const exportToCSV = useCallback(() => {
     const filteredData = table.getFilteredRowModel().rows.map(row => row.original)
     const headers = ['ID', 'Name', 'Email', 'Phone', 'Address', 'Total Bookings']
     const rows = filteredData.map(customer => [
@@ -153,7 +177,7 @@ function AdminCustomers() {
       type: 'customers',
       count: filteredData.length,
     })
-  }
+  }, [table])
 
   if (loading) {
     return (
@@ -182,22 +206,28 @@ function AdminCustomers() {
   return (
     <div className="admin-customers" role="main" aria-label="Customers Management">
       <a href="#customers-content" className="skip-to-main">Skip to main content</a>
+      {/* ARIA live region for dynamic updates */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {loading ? 'Loading customers...' : `${table.getFilteredRowModel().rows.length} customer${table.getFilteredRowModel().rows.length !== 1 ? 's' : ''} found`}
+      </div>
       <div className="customers-header">
         <h1 id="customers-title">Customers</h1>
       </div>
-      <div id="customers-content" className="customers-table-container" tabIndex={-1}>
+      <div id="customers-content" className="customers-table-container" tabIndex={-1} aria-busy={loading}>
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-2 flex-wrap" role="search" aria-label="Search customers">
             <div className="search-input-wrapper flex-1 min-w-[250px]">
               <label htmlFor="customers-search" className="sr-only">Search customers</label>
+              <Search className="search-icon" aria-hidden="true" />
               <Input
                 id="customers-search"
                 placeholder="Search by name, email, phone, address, or ID..."
-                value={globalFilter ?? ""}
-                onChange={(event) => setGlobalFilter(String(event.target.value))}
+                value={searchInputValue}
+                onChange={(event) => handleSearchChange(event.target.value)}
                 className="search-input"
                 aria-label="Search customers"
                 aria-describedby="customers-search-description"
+                aria-busy={loading}
               />
               <span id="customers-search-description" className="sr-only">Search customers by name, email, phone number, address, or customer ID</span>
             </div>
@@ -348,5 +378,6 @@ function AdminCustomers() {
   )
 }
 
-export default AdminCustomers
+// Memoize the component to prevent unnecessary re-renders
+export default memo(AdminCustomers)
 

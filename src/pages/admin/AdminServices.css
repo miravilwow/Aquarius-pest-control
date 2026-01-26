@@ -1,6 +1,11 @@
+.admin-services {
+  animation: fadeIn 0.4s ease-out;
+}
+
 .admin-services h1 {
   color: #2c3e50;
   margin-bottom: 2rem;
+  animation: slideDown 0.3s ease-out;
 }
 
 .services-header {
@@ -30,6 +35,12 @@
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   margin-bottom: 2rem;
+  animation: slideUp 0.4s ease-out;
+  transition: box-shadow 0.3s ease;
+}
+
+.service-form:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
 .service-form .form-group {
@@ -105,6 +116,18 @@
   gap: 1.5rem;
 }
 
+/* Service card animations */
+.services-list > * {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.services-list > *:nth-child(1) { animation-delay: 0.1s; }
+.services-list > *:nth-child(2) { animation-delay: 0.2s; }
+.services-list > *:nth-child(3) { animation-delay: 0.3s; }
+.services-list > *:nth-child(4) { animation-delay: 0.4s; }
+.services-list > *:nth-child(5) { animation-delay: 0.5s; }
+.services-list > *:nth-child(6) { animation-delay: 0.6s; }
+
 .service-card {
   background: white;
   padding: 1.5rem;
@@ -113,6 +136,13 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  transition: all 0.3s ease;
+  animation: scaleIn 0.4s ease-out;
+}
+
+.service-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .service-info h3 {
@@ -145,10 +175,18 @@
   padding: 0.5rem;
   border-radius: 5px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .btn-edit:hover {
   background: #2980b9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-edit:active {
+  transform: translateY(0);
 }
 
 .btn-delete {
@@ -159,10 +197,27 @@
   padding: 0.5rem;
   border-radius: 5px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 44px;
 }
 
 .btn-delete:hover {
   background: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-delete:active {
+  transform: translateY(0);
+}
+
+/* Focus indicators */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .loading {
@@ -218,7 +273,7 @@
   max-width: 400px;
 }
 
-/* Responsive Styles */
+/* Responsive Styles - Mobile and Tablet Optimizations */
 @media (max-width: 1024px) {
   .services-list {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -255,6 +310,15 @@
 
   .service-card {
     padding: 1.25rem;
+  }
+
+  /* Touch-friendly buttons */
+  .btn-edit,
+  .btn-delete,
+  button {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.75rem 1rem;
   }
 
   .form-actions {
@@ -306,6 +370,25 @@
 
   .empty-state-container {
     padding: 2rem 1rem;
+  }
+
+  /* Small mobile: Larger touch targets */
+  .btn-edit,
+  .btn-delete,
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Typography adjustments */
+  .empty-state-title {
+    font-size: 1.125rem;
+  }
+
+  .empty-state-description {
+    font-size: 0.8125rem;
   }
 }
 

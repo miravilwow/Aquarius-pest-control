@@ -1,10 +1,12 @@
 .admin-dashboard {
   position: relative;
+  animation: fadeIn 0.4s ease-out;
 }
 
 .admin-dashboard h1 {
   color: #2c3e50;
   margin-bottom: 2rem;
+  animation: slideDown 0.3s ease-out;
 }
 
 /* Skip to main content link */
@@ -128,12 +130,29 @@
   margin-bottom: 3rem;
 }
 
+/* Stat card animations */
+.stats-grid > * {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.stats-grid > *:nth-child(1) { animation-delay: 0.1s; }
+.stats-grid > *:nth-child(2) { animation-delay: 0.2s; }
+.stats-grid > *:nth-child(3) { animation-delay: 0.3s; }
+.stats-grid > *:nth-child(4) { animation-delay: 0.4s; }
+
 /* Old stat-card styles - keeping for backward compatibility */
 .stat-card {
   background: white;
   padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  animation: scaleIn 0.4s ease-out;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 
 .stat-card h3 {
@@ -159,12 +178,17 @@
   transition: all 0.3s ease;
   cursor: pointer;
   border: 1px solid transparent;
+  animation: scaleIn 0.4s ease-out;
 }
 
 .stat-card-enhanced:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.02);
   box-shadow: 0 8px 20px rgba(0,0,0,0.12);
   border-color: hsl(var(--border));
+}
+
+.stat-card-enhanced:active {
+  transform: translateY(-2px) scale(1);
 }
 
 .stat-card-bookings {
@@ -192,6 +216,12 @@
   padding: 2rem;
   border-radius: 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  animation: fadeIn 0.6s ease-out;
+  transition: box-shadow 0.3s ease;
+}
+
+.recent-bookings:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
 .recent-bookings h2 {
@@ -213,6 +243,22 @@ th, td {
   text-align: left;
   border-bottom: 1px solid #eee;
 }
+
+/* Table row animations */
+tbody tr {
+  animation: fadeIn 0.3s ease-out;
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+tbody tr:nth-child(1) { animation-delay: 0.05s; }
+tbody tr:nth-child(2) { animation-delay: 0.1s; }
+tbody tr:nth-child(3) { animation-delay: 0.15s; }
+tbody tr:nth-child(4) { animation-delay: 0.2s; }
+tbody tr:nth-child(5) { animation-delay: 0.25s; }
 
 th {
   font-weight: 600;
@@ -331,6 +377,38 @@ th {
   max-width: 400px;
 }
 
+/* Chart container animations */
+.chart-container {
+  animation: fadeIn 0.5s ease-out;
+  transition: box-shadow 0.3s ease;
+}
+
+.chart-container:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* Button hover effects */
+button {
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+/* Focus indicators */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* Responsive Styles */
 @media (max-width: 1024px) {
   .dashboard-header-row {
@@ -346,6 +424,12 @@ th {
 
   .charts-section {
     grid-template-columns: 1fr;
+  }
+
+  /* Tablet: Improve card spacing */
+  .stat-card,
+  .stat-card-enhanced {
+    padding: 1.5rem;
   }
 }
 
@@ -375,7 +459,8 @@ th {
     padding: 1.5rem;
   }
 
-  .stat-card {
+  .stat-card,
+  .stat-card-enhanced {
     padding: 1.5rem;
   }
 
@@ -386,6 +471,8 @@ th {
   .recent-bookings {
     padding: 1.5rem;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
   }
 
   .recent-bookings h2 {
@@ -397,9 +484,26 @@ th {
     font-size: 0.875rem;
   }
 
+  /* Sticky first column for mobile table */
+  th:first-child,
+  td:first-child {
+    position: sticky;
+    left: 0;
+    background: white;
+    z-index: 10;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.1);
+  }
+
   th, td {
     padding: 0.75rem 0.5rem;
     font-size: 0.9rem;
+  }
+
+  /* Touch-friendly buttons */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.75rem 1rem;
   }
 
   /* Filter popover adjustments */
@@ -420,6 +524,12 @@ th {
   .dashboard-filter-content .rdp {
     padding: 0.5rem;
   }
+
+  /* Mobile filter popover */
+  [role="dialog"] {
+    max-width: calc(100vw - 2rem);
+    margin: 1rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -432,7 +542,8 @@ th {
     margin-bottom: 1rem;
   }
 
-  .stat-card {
+  .stat-card,
+  .stat-card-enhanced {
     padding: 1rem;
   }
 
@@ -475,6 +586,19 @@ th {
   .status-badge {
     font-size: 0.75rem;
     padding: 0.2rem 0.5rem;
+  }
+
+  /* Small mobile: Larger touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  /* Typography adjustments */
+  .stat-card h3 {
+    font-size: 0.8125rem;
   }
 
   /* Skip link responsive */

@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from 'react'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { logActivity, ActivityType } from '@/utils/activityLog'
 import { Button } from '@/components/ui/button'
-import { Trash2, CheckCircle2, XCircle, MoreHorizontal, Calendar as CalendarIcon, Download, Filter, X, Eye, Mail, Printer } from 'lucide-react'
+import { Trash2, CheckCircle2, XCircle, MoreHorizontal, Calendar as CalendarIcon, Download, Filter, X, Eye, Mail, Printer, Search } from 'lucide-react'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { format, startOfToday, startOfWeek, startOfMonth, subDays, subWeeks, subMonths } from 'date-fns'
@@ -39,8 +39,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
 import { ArrowUpDown, ChevronDown } from 'lucide-react'
 import { cn } from '@/utils/index'
+import debounce from 'lodash.debounce'
 import './AdminBookings.css'
 
+// Column helper for table definition
 const columnHelper = createColumnHelper()
 
 function AdminBookings() {
@@ -61,6 +63,8 @@ function AdminBookings() {
   const [selectedBooking, setSelectedBooking] = useState(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [goToPageInput, setGoToPageInput] = useState('')
+  const [searchInputValue, setSearchInputValue] = useState('')
+  const debouncedSearchRef = useRef(null)
 
   // Helper function to get badge variant based on status
   const getStatusVariant = (status) => {
@@ -78,16 +82,42 @@ function AdminBookings() {
     }
   }
 
-  // Helper function to format status text
-  const formatStatus = (status) => {
+  /**
+   * Format status text to title case
+   * @param {string} status - Status string
+   * @returns {string} Formatted status (e.g., "Pending", "Confirmed")
+   */
+  const formatStatus = useCallback((status) => {
     return status.charAt(0).toUpperCase() + status.slice(1)
-  }
-
-  useEffect(() => {
-    fetchBookings()
   }, [])
 
-  const fetchBookings = async () => {
+  // Debounced search function
+  useEffect(() => {
+    debouncedSearchRef.current = debounce((value) => {
+      setGlobalFilter(value)
+    }, 300)
+
+    return () => {
+      if (debouncedSearchRef.current) {
+        debouncedSearchRef.current.cancel()
+      }
+    }
+  }, [])
+
+  // Handle search input change with debouncing
+  const handleSearchChange = useCallback((value) => {
+    setSearchInputValue(value)
+    if (debouncedSearchRef.current) {
+      debouncedSearchRef.current(value)
+    }
+  }, [])
+
+  /**
+   * Fetch all bookings from the API
+   * @async
+   * @returns {Promise<void>}
+   */
+  const fetchBookings = useCallback(async () => {
     try {
       const token = localStorage.getItem('adminToken')
       const response = await axios.get('http://localhost:5000/api/admin/bookings', {
@@ -99,7 +129,11 @@ function AdminBookings() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchBookings()
+  }, [fetchBookings])
 
   // Get unique services for filter
   const uniqueServices = useMemo(() => {
@@ -107,7 +141,7 @@ function AdminBookings() {
     return services.sort()
   }, [bookings])
 
-  const updateStatus = async (id, newStatus) => {
+  const updateStatus = useCallback(async (id, newStatus) => {
     try {
       const token = localStorage.getItem('adminToken')
       await axios.put(
@@ -129,25 +163,31 @@ function AdminBookings() {
         description: error.response?.data?.message || 'Failed to update status. Please try again.',
       })
     }
-  }
+  }, [formatStatus, fetchBookings])
 
-  const toggleSelectAll = (checked) => {
+  const toggleSelectAll = useCallback((checked, allRowIds) => {
     if (checked) {
-      setSelectedIds(table.getRowModel().rows.map((row) => row.original.id))
+      setSelectedIds(allRowIds)
     } else {
       setSelectedIds([])
     }
-  }
+  }, [])
 
-  const toggleSelectOne = (id, checked) => {
+  const toggleSelectOne = useCallback((id, checked) => {
     if (checked) {
       setSelectedIds((prev) => [...prev, id])
     } else {
       setSelectedIds((prev) => prev.filter((item) => item !== id))
     }
-  }
+  }, [])
 
-  const bulkUpdateStatus = async (newStatus) => {
+  /**
+   * Update status for multiple selected bookings
+   * @async
+   * @param {string} newStatus - New status to apply
+   * @returns {Promise<void>}
+   */
+  const bulkUpdateStatus = useCallback(async (newStatus) => {
     if (selectedIds.length === 0) return
     try {
       const token = localStorage.getItem('adminToken')
@@ -172,7 +212,12 @@ function AdminBookings() {
         description: error.response?.data?.message || 'Failed to update selected bookings. Please try again.',
       })
     }
-  }
+  }, [selectedIds, formatStatus, fetchBookings])
+
+  const openDetailsModal = useCallback((booking) => {
+    setSelectedBooking(booking)
+    setShowDetailsModal(true)
+  }, [])
 
   const columns = useMemo(
     () => [
@@ -183,7 +228,8 @@ function AdminBookings() {
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => {
               table.toggleAllPageRowsSelected(!!value)
-              toggleSelectAll(!!value)
+              const allIds = table.getRowModel().rows.map((row) => row.original.id)
+              toggleSelectAll(!!value, allIds)
             }}
             aria-label="Select all"
           />
@@ -273,7 +319,7 @@ function AdminBookings() {
         enableHiding: false,
       }),
     ],
-    [selectedIds]
+    [selectedIds, toggleSelectAll, toggleSelectOne, updateStatus, openDetailsModal, getStatusVariant, formatStatus]
   )
 
   // Filter bookings based on status, service, and date range
@@ -314,8 +360,12 @@ function AdminBookings() {
     return filtered
   }, [bookings, statusFilter, serviceFilter, dateRange])
 
-  // Quick filter functions
-  const applyQuickFilter = (filterType) => {
+  /**
+   * Apply quick date filter (today, this week, this month, last 30 days)
+   * @param {string} filterType - Filter type (today, thisWeek, thisMonth, last30Days)
+   * @returns {void}
+   */
+  const applyQuickFilter = useCallback((filterType) => {
     const today = startOfToday()
     let from, to
 
@@ -341,7 +391,7 @@ function AdminBookings() {
     }
 
     setDateRange({ from, to })
-  }
+  }, [])
 
   const table = useReactTable({
     data: filteredBookings,
@@ -373,8 +423,11 @@ function AdminBookings() {
     },
   })
 
-  // Export to CSV
-  const exportToCSV = () => {
+  /**
+   * Export filtered bookings to CSV file
+   * @returns {void}
+   */
+  const exportToCSV = useCallback(() => {
     const headers = ['ID', 'Customer', 'Email', 'Phone', 'Service', 'Date', 'Time', 'Status']
     const rows = filteredBookings.map(booking => [
       booking.id,
@@ -409,19 +462,19 @@ function AdminBookings() {
       type: 'bookings',
       count: filteredBookings.length,
     })
-  }
+  }, [filteredBookings])
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setStatusFilter('all')
     setServiceFilter('all')
     setDateRange(undefined)
     setGlobalFilter('')
     toast.info('Filters cleared')
-  }
+  }, [])
 
   const activeFiltersCount = (statusFilter !== 'all' ? 1 : 0) + (serviceFilter !== 'all' ? 1 : 0) + (dateRange ? 1 : 0) + (globalFilter ? 1 : 0)
 
-  const handleGoToPage = () => {
+  const handleGoToPage = useCallback(() => {
     const page = parseInt(goToPageInput)
     const maxPage = Math.ceil(table.getFilteredRowModel().rows.length / pagination.pageSize)
     if (page >= 1 && page <= maxPage) {
@@ -430,12 +483,7 @@ function AdminBookings() {
     } else {
       toast.error(`Please enter a page number between 1 and ${maxPage}`)
     }
-  }
-
-  const openDetailsModal = (booking) => {
-    setSelectedBooking(booking)
-    setShowDetailsModal(true)
-  }
+  }, [table, pagination.pageSize, goToPageInput, toast])
 
   if (loading) {
     return (
@@ -465,19 +513,32 @@ function AdminBookings() {
   return (
     <div className="admin-bookings" role="main" aria-label="Bookings Management">
       <a href="#bookings-content" className="skip-to-main">Skip to main content</a>
+      {/* ARIA live region for dynamic updates */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {loading ? 'Loading bookings...' : `${filteredBookings.length} booking${filteredBookings.length !== 1 ? 's' : ''} found`}
+      </div>
       <div className="bookings-header">
         <h1 id="bookings-title">Bookings Management</h1>
       </div>
-      <div className="bookings-table-container">
+      <div id="bookings-content" className="bookings-table-container" aria-busy={loading}>
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="search-input-wrapper flex-1 min-w-[250px]">
+              <label htmlFor="bookings-search" className="sr-only">Search bookings</label>
+              <Search className="search-icon" aria-hidden="true" />
               <Input
+                id="bookings-search"
                 placeholder="Search by name, email, phone, service, or ID..."
-                value={globalFilter ?? ""}
-                onChange={(event) => setGlobalFilter(String(event.target.value))}
+                value={searchInputValue}
+                onChange={(event) => handleSearchChange(event.target.value)}
                 className="search-input"
+                aria-label="Search bookings"
+                aria-describedby="bookings-search-description"
+                aria-busy={loading}
               />
+              <span id="bookings-search-description" className="sr-only">
+                Search bookings by customer name, email, phone number, service name, or booking ID
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Popover open={showFilters} onOpenChange={setShowFilters}>
@@ -487,6 +548,7 @@ function AdminBookings() {
                     className="relative"
                     aria-label={`Filters${activeFiltersCount > 0 ? `, ${activeFiltersCount} active` : ''}`}
                     aria-expanded={showFilters}
+                    aria-haspopup="true"
                   >
                     <Filter className="h-4 w-4 mr-2" aria-hidden="true" />
                     Filters
@@ -573,11 +635,11 @@ function AdminBookings() {
                             {dateRange?.from ? (
                               dateRange.to ? (
                                 <>
-                                  {format(dateRange.from, "LLL dd, y")} -{" "}
-                                  {format(dateRange.to, "LLL dd, y")}
+                                  {format(dateRange.from, "MM/dd/yyyy")} -{" "}
+                                  {format(dateRange.to, "MM/dd/yyyy")}
                                 </>
                               ) : (
-                                format(dateRange.from, "LLL dd, y")
+                                format(dateRange.from, "MM/dd/yyyy")
                               )
                             ) : (
                               <span>Pick a date range</span>
@@ -723,7 +785,6 @@ function AdminBookings() {
                       aria-live="polite"
                     >
                       <div className="empty-state">
-                        <Calendar className="empty-state-icon" aria-hidden="true" />
                         <h3 className="empty-state-title">
                           {(globalFilter || statusFilter !== 'all' || dateRange) ? 'No bookings found' : 'No bookings yet'}
                         </h3>
@@ -820,11 +881,22 @@ function AdminBookings() {
       </div>
 
       {/* View Details Modal */}
-      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Dialog 
+        open={showDetailsModal} 
+        onOpenChange={setShowDetailsModal}
+        onEscapeKeyDown={() => setShowDetailsModal(false)}
+      >
+        <DialogContent 
+          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+          onEscapeKeyDown={(e) => {
+            e.preventDefault()
+            setShowDetailsModal(false)
+          }}
+          aria-describedby="booking-details-description"
+        >
           <DialogHeader>
             <DialogTitle>Booking Details</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="booking-details-description">
               Complete information about this booking
             </DialogDescription>
           </DialogHeader>
@@ -949,5 +1021,6 @@ function AdminBookings() {
   )
 }
 
-export default AdminBookings
+// Memoize the component to prevent unnecessary re-renders
+export default memo(AdminBookings)
 
