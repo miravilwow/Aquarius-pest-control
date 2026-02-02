@@ -543,8 +543,8 @@ function AdminBookings() {
             <div className="flex items-center gap-2">
               <Popover open={showFilters} onOpenChange={setShowFilters}>
                 <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="relative"
                     aria-label={`Filters${activeFiltersCount > 0 ? `, ${activeFiltersCount} active` : ''}`}
                     aria-expanded={showFilters}
@@ -646,7 +646,7 @@ function AdminBookings() {
                             )}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
+                        <PopoverContent className="!w-auto p-0 max-w-[calc(150vw-20px)]" align="end" side="left">
                           <Calendar
                             mode="range"
                             defaultMonth={dateRange?.from}
@@ -672,8 +672,8 @@ function AdminBookings() {
                   </div>
                 </PopoverContent>
               </Popover>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={exportToCSV}
                 aria-label="Export bookings to CSV"
               >
@@ -722,7 +722,7 @@ function AdminBookings() {
                               <div
                                 className={cn(
                                   header.column.getCanSort() &&
-                                    "cursor-pointer select-none flex items-center gap-2"
+                                  "cursor-pointer select-none flex items-center gap-2"
                                 )}
                                 onClick={header.column.getToggleSortingHandler()}
                                 onKeyDown={(e) => {
@@ -737,8 +737,8 @@ function AdminBookings() {
                                   header.column.getIsSorted() === 'asc'
                                     ? 'ascending'
                                     : header.column.getIsSorted() === 'desc'
-                                    ? 'descending'
-                                    : 'none'
+                                      ? 'descending'
+                                      : 'none'
                                 }
                                 aria-label={`Sort by ${flexRender(header.column.columnDef.header, header.getContext())}`}
                               >
@@ -881,12 +881,12 @@ function AdminBookings() {
       </div>
 
       {/* View Details Modal */}
-      <Dialog 
-        open={showDetailsModal} 
+      <Dialog
+        open={showDetailsModal}
         onOpenChange={setShowDetailsModal}
         onEscapeKeyDown={() => setShowDetailsModal(false)}
       >
-        <DialogContent 
+        <DialogContent
           className="max-w-2xl max-h-[90vh] overflow-y-auto"
           onEscapeKeyDown={(e) => {
             e.preventDefault()

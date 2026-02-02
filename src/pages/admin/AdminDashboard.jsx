@@ -42,10 +42,10 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Users, 
+import {
+  Calendar as CalendarIcon,
+  Clock,
+  Users,
   Wrench,
   TrendingUp,
   TrendingDown,
@@ -158,12 +158,12 @@ function AdminDashboard() {
       const now = new Date()
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
       const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000)
-      
+
       const currentPeriodBookings = bookings.filter(b => {
         const bookingDate = new Date(b.created_at || b.preferred_date)
         return bookingDate >= thirtyDaysAgo
       })
-      
+
       const previousPeriodBookings = bookings.filter(b => {
         const bookingDate = new Date(b.created_at || b.preferred_date)
         return bookingDate >= sixtyDaysAgo && bookingDate < thirtyDaysAgo
@@ -173,7 +173,7 @@ function AdminDashboard() {
         const customerDate = new Date(c.created_at || c.registered_at || Date.now())
         return customerDate >= thirtyDaysAgo
       })
-      
+
       const previousPeriodCustomers = customersRes.data.filter(c => {
         const customerDate = new Date(c.created_at || c.registered_at || Date.now())
         return customerDate >= sixtyDaysAgo && customerDate < thirtyDaysAgo
@@ -433,8 +433,8 @@ function AdminDashboard() {
         <h1 id="dashboard-title">Dashboard</h1>
         <Popover>
           <PopoverTrigger asChild>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="sm"
               aria-label="Open filters"
               aria-expanded={false}
@@ -443,7 +443,7 @@ function AdminDashboard() {
               Filters
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end">
+          <PopoverContent align="end" className="w-auto">
             <div className="dashboard-filter-content">
               <p className="dashboard-filter-title">Quick Filters</p>
               <div className="flex flex-wrap gap-2 mt-2">
@@ -543,7 +543,7 @@ function AdminDashboard() {
         </div>
       )}
       <div className="stats-grid">
-        <Card 
+        <Card
           className="stat-card-enhanced stat-card-bookings"
           onClick={() => {
             setStatusFilter('all')
@@ -579,7 +579,7 @@ function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card 
+        <Card
           className="stat-card-enhanced stat-card-pending"
           onClick={() => {
             setStatusFilter('pending')
@@ -762,9 +762,9 @@ function AdminDashboard() {
                   <TableCell>
                     <Badge variant={
                       booking.status === 'pending' ? 'secondary' :
-                      booking.status === 'confirmed' ? 'default' :
-                      booking.status === 'completed' ? 'default' :
-                      booking.status === 'cancelled' ? 'destructive' : 'outline'
+                        booking.status === 'confirmed' ? 'default' :
+                          booking.status === 'completed' ? 'default' :
+                            booking.status === 'cancelled' ? 'destructive' : 'outline'
                     }>
                       {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                     </Badge>

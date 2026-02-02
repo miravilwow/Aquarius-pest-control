@@ -15,7 +15,23 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Wrench, Plus } from 'lucide-react'
+import { Wrench, Plus, Pencil, Trash2 } from 'lucide-react'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import './AdminServices.css'
 
 // Admin Services Management Component
@@ -107,7 +123,7 @@ function AdminServices() {
    */
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault()
-    
+
     // Validate form before submitting
     if (!validateForm()) {
       toast.error('Please fix the form errors', {
@@ -124,7 +140,7 @@ function AdminServices() {
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         )
-        
+
         // Build detailed update message
         const changes = []
         if (originalService) {
@@ -138,11 +154,11 @@ function AdminServices() {
             changes.push(`Price: ₱${parseFloat(originalService.price).toFixed(2)} → ₱${parseFloat(formData.price).toFixed(2)}`)
           }
         }
-        
-        const updateMessage = changes.length > 0 
+
+        const updateMessage = changes.length > 0
           ? `Updated: ${changes.join(', ')}`
           : `${formData.name} has been updated.`
-        
+
         toast.success('Service updated successfully!', {
           description: updateMessage,
           duration: 4000, // Show for 4 seconds
@@ -295,95 +311,129 @@ function AdminServices() {
         </Button>
       </div>
 
-      {showForm && (
-        <form 
-          onSubmit={handleSubmit} 
-          className="service-form"
-          aria-label={editingId ? 'Edit service form' : 'Add new service form'}
-          noValidate
-        >
-          <div className="form-group">
-            <Field>
-              <FieldLabel htmlFor="service-name">Service Name *</FieldLabel>
-              <input
-                id="service-name"
-                type="text"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                className={formErrors.name ? 'input-error' : ''}
-                placeholder="e.g., General Pest Control"
-                aria-invalid={!!formErrors.name}
-                aria-describedby={formErrors.name ? 'service-name-error' : undefined}
-              />
-              {formErrors.name && (
-                <span id="service-name-error" className="error-message" role="alert">{formErrors.name}</span>
-              )}
-            </Field>
-          </div>
-          <div className="form-group">
-            <Field>
-              <FieldLabel htmlFor="service-description">Description *</FieldLabel>
-              <textarea
-                id="service-description"
-                value={formData.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                className={formErrors.description ? 'input-error' : ''}
-                rows="3"
-                placeholder="Describe the service in detail..."
-                aria-invalid={!!formErrors.description}
-                aria-describedby={formErrors.description ? 'service-description-error' : undefined}
-              />
-              {formErrors.description && (
-                <span id="service-description-error" className="error-message" role="alert">{formErrors.description}</span>
-              )}
-            </Field>
-          </div>
-          <div className="form-group">
-            <Field>
-              <FieldLabel htmlFor="service-price">Price (₱) *</FieldLabel>
-              <input
-                id="service-price"
-                type="number"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', e.target.value)}
-                className={formErrors.price ? 'input-error' : ''}
-                min="0"
-                step="0.01"
-                placeholder="0.00"
-                aria-invalid={!!formErrors.price}
-                aria-describedby={formErrors.price ? 'service-price-error' : undefined}
-              />
-              {formErrors.price && (
-                <span id="service-price-error" className="error-message" role="alert">{formErrors.price}</span>
-              )}
-            </Field>
-          </div>
-          <div className="form-actions">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button type="submit">
-              {editingId ? 'Update Service' : 'Add Service'}
-            </Button>
-          </div>
-        </form>
-      )}
-
-      {services.length > 0 ? (
-        <div className="services-list">
-          {services.map(service => (
-            <div key={service.id} className="service-card">
-              <div className="service-info">
-                <h3>{service.name}</h3>
-                <p>{service.description}</p>
-                <div className="service-price">₱{service.price}</div>
+      <Dialog open={showForm} onOpenChange={setShowForm}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>{editingId ? 'Edit Service' : 'Add New Service'}</DialogTitle>
+            <DialogDescription>
+              {editingId ? 'Make changes to the service details below.' : 'Fill in the details to create a new service.'}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={handleSubmit}
+            className="service-form mt-4"
+            aria-label={editingId ? 'Edit service form' : 'Add new service form'}
+            noValidate
+          >
+            <div className="space-y-4">
+              <div className="form-group">
+                <Field>
+                  <FieldLabel htmlFor="service-name">Service Name *</FieldLabel>
+                  <input
+                    id="service-name"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className={formErrors.name ? 'input-error w-full p-2 border rounded' : 'w-full p-2 border rounded'}
+                    placeholder="e.g., General Pest Control"
+                    aria-invalid={!!formErrors.name}
+                    aria-describedby={formErrors.name ? 'service-name-error' : undefined}
+                  />
+                  {formErrors.name && (
+                    <span id="service-name-error" className="error-message text-red-500 text-sm" role="alert">{formErrors.name}</span>
+                  )}
+                </Field>
               </div>
-              <div className="service-actions">
-                <button onClick={() => handleEdit(service)} className="btn-edit">Edit</button>
-                <button onClick={() => setServiceToDelete(service)} className="btn-delete">Delete</button>
+              <div className="form-group">
+                <Field>
+                  <FieldLabel htmlFor="service-description">Description *</FieldLabel>
+                  <textarea
+                    id="service-description"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    className={formErrors.description ? 'input-error w-full p-2 border rounded' : 'w-full p-2 border rounded'}
+                    rows="3"
+                    placeholder="Describe the service in detail..."
+                    aria-invalid={!!formErrors.description}
+                    aria-describedby={formErrors.description ? 'service-description-error' : undefined}
+                  />
+                  {formErrors.description && (
+                    <span id="service-description-error" className="error-message text-red-500 text-sm" role="alert">{formErrors.description}</span>
+                  )}
+                </Field>
+              </div>
+              <div className="form-group">
+                <Field>
+                  <FieldLabel htmlFor="service-price">Price (₱) *</FieldLabel>
+                  <input
+                    id="service-price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => handleInputChange('price', e.target.value)}
+                    className={formErrors.price ? 'input-error w-full p-2 border rounded' : 'w-full p-2 border rounded'}
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    aria-invalid={!!formErrors.price}
+                    aria-describedby={formErrors.price ? 'service-price-error' : undefined}
+                  />
+                  {formErrors.price && (
+                    <span id="service-price-error" className="error-message text-red-500 text-sm" role="alert">{formErrors.price}</span>
+                  )}
+                </Field>
               </div>
             </div>
-          ))}
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {editingId ? 'Update Service' : 'Add Service'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {services.length > 0 ? (
+        <div className="services-table-container rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Service Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {services.map((service) => (
+                <TableRow key={service.id}>
+                  <TableCell className="font-medium">{service.name}</TableCell>
+                  <TableCell className="max-w-md truncate">{service.description}</TableCell>
+                  <TableCell>₱{service.price}</TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(service)}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setServiceToDelete(service)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       ) : (
         <div className="empty-state-container">
@@ -404,8 +454,8 @@ function AdminServices() {
         </div>
       )}
 
-      <AlertDialog 
-        open={!!serviceToDelete} 
+      <AlertDialog
+        open={!!serviceToDelete}
         onOpenChange={(open) => {
           if (!open) setServiceToDelete(null)
         }}

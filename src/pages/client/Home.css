@@ -1583,4 +1583,18 @@
     font-size: 1.25rem;
   }
 }
+/* Testimonials Section */
+.testimonial-card {
+  transition: all 0.3s ease;
+}
 
+.testimonial-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Star Rating */
+.star-rating {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}

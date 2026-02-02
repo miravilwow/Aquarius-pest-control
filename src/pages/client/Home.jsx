@@ -38,6 +38,7 @@ function Home() {
   const isPausedRef = useRef(false)
   const pestAnimationRef = useRef(null)
   const gsapLoadedRef = useRef(false)
+  const [testimonialsIndex, setTestimonialsIndex] = useState(0)
   const [currentPestIndex, setCurrentPestIndex] = useState(0)
   const [carouselCurrentIndex, setCarouselCurrentIndex] = useState(0)
   const [isCarouselTransitioning, setIsCarouselTransitioning] = useState(false)
@@ -66,6 +67,42 @@ function Home() {
 
   // Pest list for rotating animation
   const pests = ['Rodents', 'Ants', 'Mosquitoes', 'Cockroaches', 'Termites', 'Bedbugs', 'Spiders', 'Flies']
+
+  // Testimonials data
+const testimonials = [
+  {
+    id: 1,
+    name: 'Maria Santos',
+    role: 'Homeowner',
+    message: 'Excellent service! They eliminated our pest problem quickly and professionally.',
+    rating: 5,
+    image: '👩‍💼'
+  },
+  {
+    id: 2,
+    name: 'John Reyes',
+    role: 'Restaurant Owner',
+    message: 'Best pest control company in the area. Highly recommended for business owners!',
+    rating: 5,
+    image: '👨‍💼'
+  },
+  {
+    id: 3,
+    name: 'Ana Cruz',
+    role: 'Office Manager',
+    message: 'Professional, affordable, and they follow up regularly. Very satisfied!',
+    rating: 5,
+    image: '👩‍💼'
+  },
+  {
+    id: 4,
+    name: 'Carlos Dela Cruz',
+    role: 'Homeowner',
+    message: 'Fast response time and effective treatment. My family feels safe again.',
+    rating: 5,
+    image: '👨‍💼'
+  }
+]
 
   // GSAP Hero Section Animations
   useEffect(() => {
@@ -1171,7 +1208,87 @@ function Home() {
           </div>
         </div>
       </section>
+            {/* Testimonials Section */}
+      <section className="py-16 md:py-24 bg-gradient-to-b from-white to-blue-50">
+        <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          {/* Section Header */}
+          <div className="text-center mb-12 md:mb-16">
+            <div className="inline-flex items-center justify-center mb-4 px-4 py-2 bg-blue-100 rounded-full">
+              <Heart className="w-4 h-4 text-blue-600 mr-2" />
+              <span className="text-sm font-semibold text-blue-600">What Our Customers Say</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+              Customer Testimonials
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Join hundreds of satisfied customers who trust us with their pest control needs
+            </p>
+          </div>
 
+          {/* Testimonials Carousel */}
+          <div className="max-w-4xl mx-auto">
+            <Carousel
+              opts={{
+                align: 'center',
+                loop: true,
+              }}
+              className="w-full"
+            >
+              <CarouselContent>
+                {testimonials.map((testimonial) => (
+                  <CarouselItem key={testimonial.id}>
+                    <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                      <CardContent className="pt-8 pb-8">
+                        <div className="flex flex-col items-center text-center space-y-4">
+                          {/* Avatar */}
+                          <div className="text-5xl">{testimonial.image}</div>
+
+                          {/* Stars Rating */}
+                          <div className="flex gap-1">
+                            {[...Array(testimonial.rating)].map((_, i) => (
+                              <span key={i} className="text-yellow-400 text-lg">★</span>
+                            ))}
+                          </div>
+
+                          {/* Message */}
+                          <p className="text-lg text-gray-700 italic max-w-2xl">
+                            "{testimonial.message}"
+                          </p>
+
+                          {/* Customer Info */}
+                          <div className="pt-4 border-t border-gray-200 w-full">
+                            <p className="font-semibold text-gray-900">{testimonial.name}</p>
+                            <p className="text-sm text-gray-500">{testimonial.role}</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              {/* Navigation */}
+              <CarouselPrevious className="hidden sm:flex" />
+              <CarouselNext className="hidden sm:flex" />
+            </Carousel>
+
+            {/* Mobile Dots Navigation */}
+            <div className="flex justify-center gap-2 mt-6 sm:hidden">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setTestimonialsIndex(index)}
+                  className={`h-2 rounded-full transition-all ${
+                    index === testimonialsIndex ? 'bg-blue-600 w-8' : 'bg-gray-300 w-2'
+                  }`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+      
       {/* Service Details Modal - Services Page Style */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="service-modal">
