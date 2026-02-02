@@ -646,7 +646,7 @@ function AdminBookings() {
                             )}
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="!w-auto p-0 max-w-[calc(150vw-20px)]" align="end" side="left">
+                        <PopoverContent className="!w-auto p-0 max-w-[calc(100vw-20px)]" align="end" side="left">
                           <Calendar
                             mode="range"
                             defaultMonth={dateRange?.from}

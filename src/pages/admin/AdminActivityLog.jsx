@@ -19,8 +19,8 @@ function AdminActivityLog() {
 
   const loadLogs = () => {
     const allLogs = getActivityLogs()
-    const filtered = filter === 'all' 
-      ? allLogs 
+    const filtered = filter === 'all'
+      ? allLogs
       : allLogs.filter(log => log.type === filter)
     setLogs(filtered)
   }

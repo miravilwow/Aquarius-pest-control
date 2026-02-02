@@ -13,7 +13,7 @@
 }
 
 .activity-log-header h1 {
-  color: #2c3e50;
+  color: hsl(var(--foreground));
   margin-bottom: 0.5rem;
 }
 
@@ -33,21 +33,21 @@
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid #e5e7eb;
+  border: 1px solid hsl(var(--border));
   border-radius: 8px;
-  background: white;
+  background: hsl(var(--card));
   transition: all 0.2s;
 }
 
 .activity-log-item:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px hsl(var(--foreground) / 0.1);
 }
 
 .activity-log-icon {
   display: flex;
   align-items: flex-start;
   padding-top: 0.25rem;
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
 }
 
 .activity-log-content {
@@ -64,7 +64,7 @@
 
 .activity-log-time {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
   white-space: nowrap;
 }
 
@@ -73,12 +73,12 @@
   gap: 1rem;
   flex-wrap: wrap;
   font-size: 0.875rem;
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
 }
 
 .activity-log-details span {
   padding: 0.25rem 0.5rem;
-  background: #f3f4f6;
+  background: hsl(var(--muted));
   border-radius: 4px;
 }
 
@@ -123,7 +123,7 @@
     flex-direction: column;
   }
 
-  .activity-log-actions > * {
+  .activity-log-actions>* {
     width: 100%;
   }
 

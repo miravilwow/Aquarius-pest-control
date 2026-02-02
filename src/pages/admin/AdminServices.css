@@ -3,7 +3,7 @@
 }
 
 .admin-services h1 {
-  color: #2c3e50;
+  color: hsl(var(--foreground));
   margin-bottom: 2rem;
   animation: slideDown 0.3s ease-out;
 }
@@ -30,17 +30,17 @@
 }
 
 .service-form {
-  background: white;
+  background: hsl(var(--card));
   padding: 2rem;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px hsl(var(--foreground) / 0.1);
   margin-bottom: 2rem;
   animation: slideUp 0.4s ease-out;
   transition: box-shadow 0.3s ease;
 }
 
 .service-form:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 20px hsl(var(--foreground) / 0.15);
 }
 
 .service-form .form-group {
@@ -51,17 +51,19 @@
   display: block;
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #2c3e50;
+  color: hsl(var(--foreground));
 }
 
 .service-form input,
 .service-form textarea {
   width: 100%;
   padding: 0.75rem;
-  border: 1px solid #ddd;
+  border: 1px solid hsl(var(--border));
   border-radius: 5px;
   font-size: 1rem;
   font-family: inherit;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
 }
 
 .service-form input:focus,
@@ -117,22 +119,39 @@
 }
 
 /* Service card animations */
-.services-list > * {
+.services-list>* {
   animation: fadeIn 0.5s ease-out;
 }
 
-.services-list > *:nth-child(1) { animation-delay: 0.1s; }
-.services-list > *:nth-child(2) { animation-delay: 0.2s; }
-.services-list > *:nth-child(3) { animation-delay: 0.3s; }
-.services-list > *:nth-child(4) { animation-delay: 0.4s; }
-.services-list > *:nth-child(5) { animation-delay: 0.5s; }
-.services-list > *:nth-child(6) { animation-delay: 0.6s; }
+.services-list>*:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.services-list>*:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.services-list>*:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.services-list>*:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+.services-list>*:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+.services-list>*:nth-child(6) {
+  animation-delay: 0.6s;
+}
 
 .service-card {
-  background: white;
+  background: hsl(var(--card));
   padding: 1.5rem;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px hsl(var(--foreground) / 0.1);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -142,16 +161,16 @@
 
 .service-card:hover {
   transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px hsl(var(--foreground) / 0.15);
 }
 
 .service-info h3 {
-  color: #2c3e50;
+  color: hsl(var(--foreground));
   margin-bottom: 0.5rem;
 }
 
 .service-info p {
-  color: #7f8c8d;
+  color: hsl(var(--muted-foreground));
   margin-bottom: 1rem;
 }
 
@@ -182,7 +201,7 @@
 .btn-edit:hover {
   background: #2980b9;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px hsl(var(--foreground) / 0.15);
 }
 
 .btn-edit:active {
@@ -204,7 +223,7 @@
 .btn-delete:hover {
   background: #c0392b;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 8px hsl(var(--foreground) / 0.15);
 }
 
 .btn-delete:active {
@@ -238,10 +257,10 @@ textarea:focus-visible {
 }
 
 .empty-state-container {
-  background: white;
+  background: hsl(var(--card));
   padding: 4rem 2rem;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px hsl(var(--foreground) / 0.1);
   margin-top: 2rem;
 }
 
@@ -263,13 +282,13 @@ textarea:focus-visible {
 .empty-state-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: hsl(var(--foreground));
   margin-bottom: 0.5rem;
 }
 
 .empty-state-description {
   font-size: 0.875rem;
-  color: #6b7280;
+  color: hsl(var(--muted-foreground));
   max-width: 400px;
 }
 
@@ -391,4 +410,3 @@ textarea:focus-visible {
     font-size: 0.8125rem;
   }
 }
-
